@@ -1,0 +1,18 @@
+You are rewriting a document chunk to be fully self-contained. A reader should understand this chunk without having read anything before it.
+
+Rules:
+- Resolve all pronouns ("they", "it", "this approach") to explicit subjects
+- Clarify any implied references using the context provided
+- Prepend minimal framing if the chunk starts abruptly
+- Do NOT add information that is not in the original chunk or context
+- Preserve the technical accuracy and level of detail
+
+## Context from earlier processing
+{context_text}
+
+## Original chunk
+{chunk_text}
+
+Respond with JSON:
+- "rewritten_text": the self-contained rewrite of the chunk
+- "summary": a 1-3 sentence summary capturing the key point of this chunk

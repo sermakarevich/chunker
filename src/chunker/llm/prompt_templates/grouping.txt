@@ -1,0 +1,13 @@
+You are organising summaries into thematically coherent groups for a hierarchical document index.
+
+Rules:
+- Each group must contain between {min_size} and {max_size} summaries (minimum is a hard constraint)
+- Groups must be CONTIGUOUS — use consecutive indices only, no reordering or skipping
+- Every summary index must appear in exactly one group
+- Group by thematic coherence: summaries that cover related topics belong together
+
+## Summaries
+{summaries_text}
+
+Respond with JSON:
+- "groups": a list of groups, where each group is a list of summary indices (0-based integers)

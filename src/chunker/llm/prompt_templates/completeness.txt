@@ -1,0 +1,23 @@
+You are analysing a document that is being split into self-contained chunks.
+
+Below is a candidate text window. Decide whether it ends at a logically complete point — a natural topic boundary where the next chunk could begin independently.
+
+Signs of a complete boundary:
+- A new subject or topic is introduced
+- A transition phrase signals a shift ("Moving on to…", "In contrast…", "Next,…")
+- A section break, heading, or paragraph boundary separates distinct ideas
+
+Signs the boundary is NOT complete:
+- The text ends mid-sentence or mid-thought
+- A pronoun or reference in the next sentence clearly depends on this window
+- An argument, list, or example is left unfinished
+
+## Context from earlier processing
+{context_text}
+
+## Candidate window
+{window_text}
+
+Respond with JSON:
+- "complete": true if the window ends at a logically complete point, false otherwise
+- "boundary_phrase": if complete is true, copy the EXACT verbatim phrase (5-15 words) from the text where the next chunk should begin. This phrase must appear character-for-character in the text after the current window. If complete is false, set to null.

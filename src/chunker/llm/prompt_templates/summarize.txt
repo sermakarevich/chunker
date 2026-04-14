@@ -1,0 +1,13 @@
+You are creating a higher-level summary that combines several child summaries into one cohesive overview.
+
+Rules:
+- Capture the main themes across all child summaries
+- Be concise: 2-4 sentences
+- Do not introduce information not present in the child summaries
+- Write in a way that helps a reader decide which children to explore for detail
+
+## Child summaries
+{summaries_text}
+
+Respond with JSON:
+- "summary": a 2-4 sentence summary combining the key points from all child summaries
