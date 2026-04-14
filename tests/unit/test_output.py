@@ -85,6 +85,26 @@ def flat_state() -> PipelineState:
 
 
 @pytest.fixture
+def mixed_state() -> PipelineState:
+    """3 chunks in a block + 1 orphan chunk with no parent."""
+    state = PipelineState.create(document_id="doc-mixed", source_text="m" * 400)
+    state.chunks = {
+        "chunk-001": _chunk("chunk-001", span=(0, 100), parent="block-L1-001"),
+        "chunk-002": _chunk("chunk-002", span=(100, 200), parent="block-L1-001"),
+        "chunk-003": _chunk("chunk-003", span=(200, 300), parent="block-L1-001"),
+        "chunk-004": _chunk("chunk-004", span=(300, 400)),  # orphan
+    }
+    state.blocks = {
+        "block-L1-001": _block(
+            "block-L1-001",
+            level=1,
+            children=["chunk-001", "chunk-002", "chunk-003"],
+        ),
+    }
+    return state
+
+
+@pytest.fixture
 def multi_root_state() -> PipelineState:
     """4 chunks, 2 L1 blocks (both roots)."""
     state = PipelineState.create(document_id="doc-multi", source_text="z" * 400)
@@ -436,6 +456,33 @@ class TestIndexMarkdown:
         assert "[[chunks/chunk-001]]" in content
         assert "[[chunks/chunk-002]]" in content
 
+    def test_mixed_index_links_orphan_chunk(
+        self,
+        mixed_state: PipelineState,
+        tmp_path: Path,
+    ) -> None:
+        MarkdownRenderer().render(mixed_state, tmp_path)
+        content = (tmp_path / "index.md").read_text()
+        assert "[[chunks/chunk-004]]" in content
+
+    def test_mixed_index_has_ungrouped_section(
+        self,
+        mixed_state: PipelineState,
+        tmp_path: Path,
+    ) -> None:
+        MarkdownRenderer().render(mixed_state, tmp_path)
+        content = (tmp_path / "index.md").read_text()
+        assert "## Ungrouped Chunks" in content
+
+    def test_mixed_index_still_links_root_blocks(
+        self,
+        mixed_state: PipelineState,
+        tmp_path: Path,
+    ) -> None:
+        MarkdownRenderer().render(mixed_state, tmp_path)
+        content = (tmp_path / "index.md").read_text()
+        assert "[[blocks/block-L1-001]]" in content
+
     def test_multi_root_index(
         self,
         multi_root_state: PipelineState,
@@ -555,6 +602,16 @@ class TestFullTraversal:
         MarkdownRenderer().render(flat_state, tmp_path)
         visited = self._traverse(tmp_path)
         for chunk_id in flat_state.chunks:
+            assert f"chunks/{chunk_id}" in visited
+
+    def test_all_chunks_reachable_mixed(
+        self,
+        mixed_state: PipelineState,
+        tmp_path: Path,
+    ) -> None:
+        MarkdownRenderer().render(mixed_state, tmp_path)
+        visited = self._traverse(tmp_path)
+        for chunk_id in mixed_state.chunks:
             assert f"chunks/{chunk_id}" in visited
 
     def test_all_chunks_reachable_multi_root(
