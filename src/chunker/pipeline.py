@@ -12,6 +12,7 @@ from chunker.context import ContextBuilder
 from chunker.llm.service import LLMService
 from chunker.nodes.aggregation import AggregationSweeper
 from chunker.nodes.chunking import ChunkExtractor
+from chunker.nodes.output import JsonExporter, MarkdownRenderer
 from chunker.nodes.rewriting import ChunkRewriter
 from chunker.state import PipelineState
 
@@ -71,4 +72,10 @@ class Pipeline:
             self._sweeper.sweep(state)
             self._checkpointer.save(state)
 
+        self._write_output(state)
         return ProcessingResult.from_state(state)
+
+    def _write_output(self, state: PipelineState) -> None:
+        output_dir = Path(self._config.output_dir)
+        JsonExporter().write(state, output_dir / "hierarchy.json")
+        MarkdownRenderer().render(state, output_dir)
