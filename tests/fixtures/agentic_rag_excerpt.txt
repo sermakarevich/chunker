@@ -1,0 +1,71 @@
+Agentic Retrieval-Augmented Generation: A Survey on Enhancing LLMs with Autonomous Decision-Making
+
+1. Introduction
+
+Retrieval-Augmented Generation (RAG) has emerged as a foundational paradigm for grounding large language models (LLMs) in external knowledge sources. By retrieving relevant documents at inference time and conditioning generation on the retrieved context, RAG systems mitigate hallucination and enable knowledge-intensive tasks without retraining the underlying model. However, conventional RAG pipelines operate as fixed, single-pass workflows: a query triggers retrieval, retrieved passages are concatenated into a prompt, and the model generates a response. This rigid design introduces several failure modes that limit real-world applicability.
+
+First, standard RAG systems lack the ability to assess whether retrieval is necessary at all. For simple factual questions already within the model's parametric knowledge, unnecessary retrieval introduces latency and may inject irrelevant or contradictory context. Conversely, complex multi-hop questions may require multiple retrieval steps with query reformulation between them, yet a single-pass pipeline has no mechanism to iterate. Second, the retrieval component operates independently of the generation component. The model cannot steer retrieval toward the specific information it needs, nor can it evaluate whether the retrieved passages actually contain the answer before committing to generation.
+
+Agentic RAG addresses these limitations by introducing autonomous decision-making into the retrieval-generation loop. In an agentic architecture, the LLM functions as a reasoning agent that can plan retrieval strategies, evaluate intermediate results, reformulate queries, and decide when sufficient information has been gathered to produce a final answer. The agent maintains a working memory of retrieved passages and intermediate reasoning steps, enabling multi-turn interactions with the knowledge base.
+
+2. Architecture of Agentic RAG Systems
+
+The architecture of an agentic RAG system extends the traditional retrieve-then-generate pipeline with several additional components. At the core is the agent controller, which orchestrates the flow of information between the LLM, the retrieval system, and any additional tools. The controller implements a loop that alternates between reasoning and action steps, following a paradigm similar to ReAct (Reasoning and Acting).
+
+The retrieval module in an agentic system is no longer a passive component. Instead, it exposes multiple retrieval strategies as tools that the agent can invoke selectively. These may include dense retrieval using embedding similarity, sparse retrieval using BM25 or TF-IDF, structured queries against databases or knowledge graphs, and web search for real-time information. The agent decides which retrieval strategy to employ based on the nature of the query and the information gathered so far.
+
+A critical component is the working memory, which accumulates retrieved passages, extracted facts, and intermediate reasoning across multiple retrieval steps. Unlike standard RAG, where the context window is filled in a single pass, agentic systems build context incrementally. The working memory is managed by a context manager that handles deduplication, relevance scoring, and eviction of low-value passages when the context budget is exceeded.
+
+The tool interface provides the agent with capabilities beyond retrieval. Common tools include calculators for numerical reasoning, code interpreters for executing analytical queries, summarizers for compressing long documents, and validators for fact-checking intermediate conclusions. The agent selects tools based on the subtask at hand, composing multi-step workflows that would be impossible in a single-pass system.
+
+3. Retrieval Decision-Making
+
+A defining feature of agentic RAG is the agent's ability to make autonomous decisions about when and how to retrieve information. This capability is implemented through a decision module that evaluates the current state of knowledge and determines the next action.
+
+The simplest form of retrieval decision-making is the retrieve-or-not decision. Before any retrieval, the agent assesses whether the query can be answered from its parametric knowledge alone. This assessment may use confidence calibration techniques, where the model generates a preliminary answer and estimates its confidence. If confidence exceeds a threshold, the answer is returned directly. Otherwise, retrieval is triggered.
+
+For complex queries, the agent must decompose the original question into sub-questions and plan a retrieval strategy for each. This planning phase considers dependencies between sub-questions, as some may require answers from previous steps. The agent constructs a retrieval plan, which may be represented as a directed acyclic graph where nodes are sub-questions and edges represent information flow.
+
+Query reformulation is another critical decision. When initial retrieval yields insufficient or irrelevant results, the agent must decide how to modify the query. Strategies include expanding the query with related terms, narrowing it with additional constraints, rephrasing it using alternative terminology, or pivoting to a different aspect of the question. The agent learns to select among these strategies based on the nature of the retrieval failure.
+
+The stopping criterion determines when the agent has gathered sufficient information. Without an explicit stopping mechanism, the agent might retrieve indefinitely or stop prematurely. Effective stopping criteria include answer completeness checks (verifying that all aspects of the question are addressed), information saturation (detecting diminishing returns from additional retrieval), and confidence thresholds (generating a candidate answer and assessing confidence).
+
+4. Context Management and Memory
+
+Managing the accumulated context across multiple retrieval rounds is one of the most challenging aspects of agentic RAG. As the agent retrieves more passages, the total context size grows and may exceed the model's context window. Even within the window limit, excessively long contexts degrade generation quality due to the lost-in-the-middle phenomenon, where models attend less to information in the middle of long contexts.
+
+The context manager addresses this challenge through several mechanisms. Passage ranking assigns relevance scores to each retrieved passage based on its similarity to the query, its recency in the retrieval sequence, and its redundancy with other passages. Low-ranking passages may be evicted from working memory when space is needed.
+
+Summarization provides a complementary approach. Rather than discarding passages, the context manager can compress them into shorter summaries that preserve key information while reducing token count. This is particularly effective for passages that contain relevant information spread across many sentences. The summarizer may operate at different granularities, from sentence-level extraction to paragraph-level abstraction.
+
+Hierarchical memory organizes context at multiple levels of abstraction. The lowest level contains raw retrieved passages. The middle level contains extracted facts and key claims. The highest level contains summaries and synthesis across multiple passages. The agent accesses different levels depending on the task: detailed passages for precise citation, extracted facts for reasoning, and summaries for maintaining global coherence.
+
+5. Multi-Step Reasoning
+
+Agentic RAG excels at multi-step reasoning tasks that require synthesizing information across multiple sources. The agent's ability to plan, retrieve iteratively, and maintain working memory enables it to handle complex queries that defeat single-pass systems.
+
+In multi-hop question answering, the agent decomposes a question into a chain of simpler sub-questions, where each sub-question builds on the answers to previous ones. For example, answering "What was the GDP of the country where the 2024 Olympics were held?" requires first identifying the host country (France), then retrieving France's GDP. The agent plans this decomposition, executes each retrieval step, and composes the final answer from the accumulated evidence.
+
+Comparative reasoning requires the agent to retrieve information about multiple entities and evaluate them against specified criteria. The agent must ensure balanced coverage of all entities, identify the relevant comparison dimensions, and synthesize the retrieved facts into a coherent comparison. This often requires multiple retrieval rounds as the agent discovers new comparison dimensions during the process.
+
+Temporal reasoning involves questions about events, durations, and sequences that span multiple time periods. The agent must retrieve information from different temporal contexts and reason about the ordering and relationships between events. This is particularly challenging when sources contain conflicting temporal information, requiring the agent to assess source reliability and recency.
+
+6. Evaluation Frameworks
+
+Evaluating agentic RAG systems requires metrics that go beyond the standard retrieval and generation quality measures used for conventional RAG. The agentic nature of these systems introduces additional dimensions that must be assessed.
+
+Retrieval efficiency measures how effectively the agent uses its retrieval budget. Metrics include the number of retrieval steps required to answer a question, the fraction of retrieved passages that contribute to the final answer, and the total latency from query to response. An efficient agent should minimize unnecessary retrievals while ensuring comprehensive coverage.
+
+Reasoning quality assesses the agent's decision-making process independently of the final answer. This includes evaluating query decomposition (whether sub-questions are well-formed and complete), retrieval strategy selection (whether the agent chose appropriate tools and methods), and stopping decisions (whether the agent stopped at an appropriate point).
+
+Answer quality encompasses standard metrics like accuracy, completeness, and faithfulness to retrieved evidence. For agentic systems, additional criteria include source attribution (can the agent cite specific retrieved passages for each claim), coherence (does the answer synthesize information smoothly), and robustness (does the system produce consistent answers across different retrieval paths).
+
+7. Challenges and Future Directions
+
+Despite significant progress, several challenges remain in the development of agentic RAG systems. The computational overhead of multi-step reasoning and retrieval is substantial, as each agent action requires an LLM inference step. Reducing this overhead through more efficient planning, caching of intermediate results, and parallel retrieval execution is an active area of research.
+
+Reliability and controllability present ongoing challenges. The autonomous nature of agentic systems means that failure modes are harder to predict and debug than in deterministic pipelines. An agent might enter an infinite retrieval loop, make a reasoning error early that cascades through subsequent steps, or retrieve and incorporate misinformation without detection. Developing robust guardrails and monitoring mechanisms is essential for production deployment.
+
+The tension between agent autonomy and user control is a fundamental design consideration. More autonomous agents can handle complex tasks with less user intervention, but they are also harder to steer when their reasoning diverges from the user's intent. Hybrid approaches that allow users to inspect and modify the agent's plan before execution offer a promising middle ground.
+
+Finally, the integration of agentic RAG with other AI system components, including tool use, code generation, and multi-modal retrieval, points toward a future where RAG is not a standalone pipeline but a capability embedded within broader AI agent architectures. As language models become more capable reasoners and planners, the boundaries between retrieval, reasoning, and generation will continue to blur, leading to increasingly sophisticated knowledge-grounded AI systems.

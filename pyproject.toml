@@ -1,0 +1,23 @@
+[project]
+name = "chunker"
+version = "0.1.0"
+description = "Hierarchical document chunking with multi-level summaries for progressive disclosure"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-ollama",
+    "pydantic",
+]
+
+[project.scripts]
+chunker = "chunker.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
