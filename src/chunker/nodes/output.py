@@ -128,6 +128,11 @@ class MarkdownRenderer:
         root_block_ids = [
             bid for bid, block in state.blocks.items() if block.parent_block_id is None
         ]
+        orphan_chunk_ids = [
+            cid
+            for cid, chunk in state.chunks.items()
+            if chunk.parent_block_id is None
+        ]
 
         lines = [f"# {state.document_id}", "", "## Top-Level Summaries"]
 
@@ -135,7 +140,12 @@ class MarkdownRenderer:
             for bid in root_block_ids:
                 lines.append(f"- [[blocks/{bid}]]")
         else:
-            for cid in state.chunks:
+            for cid in orphan_chunk_ids:
+                lines.append(f"- [[chunks/{cid}]]")
+
+        if root_block_ids and orphan_chunk_ids:
+            lines.extend(["", "## Ungrouped Chunks"])
+            for cid in orphan_chunk_ids:
                 lines.append(f"- [[chunks/{cid}]]")
 
         lines.append("")
