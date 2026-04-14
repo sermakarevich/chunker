@@ -7,6 +7,7 @@ needing a running Ollama instance.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -186,6 +187,80 @@ class TestPipelineEndToEnd:
         pipeline.run(DOCUMENT, "ml-doc")
 
         assert Path(checkpoint_path).exists()
+
+
+class TestPipelineOutput:
+    @pytest.fixture()
+    def checkpoint_path(self, tmp_path: Path) -> str:
+        return str(tmp_path / "checkpoint.json")
+
+    def _setup_llm_mock(self, mock_llm: MagicMock) -> None:
+        """Same LLM mock setup as TestPipelineEndToEnd."""
+        boundaries = [
+            "Feature engineering transforms",
+            "Hyperparameter tuning optimizes",
+        ]
+        completeness_idx = {"count": 0}
+
+        def completeness_side_effect(window_text, context_text, *, chunk_id=None):
+            idx = completeness_idx["count"]
+            completeness_idx["count"] += 1
+            phrase = boundaries[idx] if idx < len(boundaries) else None
+            return CompletenessResult(complete=True, boundary_phrase=phrase)
+
+        mock_llm.check_completeness.side_effect = completeness_side_effect
+
+        chunk_counter = {"n": 0}
+
+        def rewrite_side_effect(chunk_text, context_text, *, chunk_id=None):
+            chunk_counter["n"] += 1
+            return RewriteResult(
+                rewritten_text=f"[Rewritten {chunk_counter['n']}] {chunk_text.strip()}",
+                summary=f"Summary of section {chunk_counter['n']}.",
+            )
+
+        mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
+
+        mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
+        mock_llm.summarize_group.return_value = (
+            "Overview of ML pipeline: data, features, evaluation, tuning, deployment."
+        )
+
+    def test_full_pipeline_writes_json_output(self, checkpoint_path, tmp_path):
+        output_dir = tmp_path / "output"
+        config = _config(checkpoint_path, output_dir=str(output_dir))
+        pipeline, mock_llm = _build_pipeline_with_mock_llm(config)
+        self._setup_llm_mock(mock_llm)
+
+        pipeline.run(DOCUMENT, "ml-doc")
+
+        json_path = output_dir / "hierarchy.json"
+        assert json_path.exists()
+
+        data = json.loads(json_path.read_text())
+        assert data["document_id"] == "ml-doc"
+        assert "root_block_ids" in data
+        assert "blocks" in data
+        assert "chunks" in data
+        assert len(data["chunks"]) == 4
+
+    def test_full_pipeline_writes_markdown_files(self, checkpoint_path, tmp_path):
+        output_dir = tmp_path / "output"
+        config = _config(checkpoint_path, output_dir=str(output_dir))
+        pipeline, mock_llm = _build_pipeline_with_mock_llm(config)
+        self._setup_llm_mock(mock_llm)
+
+        pipeline.run(DOCUMENT, "ml-doc")
+
+        assert (output_dir / "index.md").exists()
+        assert (output_dir / "chunks").is_dir()
+        assert (output_dir / "blocks").is_dir()
+
+        chunk_files = list((output_dir / "chunks").iterdir())
+        assert len(chunk_files) == 4
+
+        block_files = list((output_dir / "blocks").iterdir())
+        assert len(block_files) >= 1
 
 
 class TestPipelineResume:

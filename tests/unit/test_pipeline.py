@@ -368,6 +368,94 @@ class TestRunCommand:
         assert config.max_chunk_tokens == 400  # gemma4:12b profile value
 
 
+class TestPipelineOutput:
+    def _make_pipeline_with_mocks(
+        self, config: ChunkerConfig | None = None
+    ) -> tuple[Pipeline, MagicMock, MagicMock, MagicMock, MagicMock]:
+        config = config or _config()
+        with patch("chunker.pipeline.ChatOllama"):
+            pipeline = Pipeline(config)
+
+        extractor = MagicMock()
+        rewriter = MagicMock()
+        sweeper = MagicMock()
+        checkpointer = MagicMock()
+
+        pipeline._extractor = extractor
+        pipeline._rewriter = rewriter
+        pipeline._sweeper = sweeper
+        pipeline._checkpointer = checkpointer
+
+        return pipeline, extractor, rewriter, sweeper, checkpointer
+
+    def _setup_single_chunk(self, extractor, rewriter, text):
+        chunk = _chunk("chunk-001", (0, len(text)))
+
+        def extract_side_effect(state):
+            state.cursor_position = len(text)
+            state.chunk_counter = 1
+            return chunk
+
+        extractor.extract_next.side_effect = extract_side_effect
+        rewriter.rewrite.side_effect = lambda c, s: c
+
+    def test_run_creates_json_output(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline, extractor, rewriter, sweeper, checkpointer = (
+            self._make_pipeline_with_mocks(config)
+        )
+        text = "Hello world."
+        self._setup_single_chunk(extractor, rewriter, text)
+
+        pipeline.run(text, "doc-1")
+
+        assert (tmp_path / "hierarchy.json").exists()
+
+    def test_run_creates_markdown_index(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline, extractor, rewriter, sweeper, checkpointer = (
+            self._make_pipeline_with_mocks(config)
+        )
+        text = "Hello world."
+        self._setup_single_chunk(extractor, rewriter, text)
+
+        pipeline.run(text, "doc-1")
+
+        assert (tmp_path / "index.md").exists()
+
+    def test_run_creates_chunk_files(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline, extractor, rewriter, sweeper, checkpointer = (
+            self._make_pipeline_with_mocks(config)
+        )
+        text = "Hello world."
+        self._setup_single_chunk(extractor, rewriter, text)
+
+        pipeline.run(text, "doc-1")
+
+        assert (tmp_path / "chunks").is_dir()
+        chunk_files = list((tmp_path / "chunks").iterdir())
+        assert len(chunk_files) == 1
+
+    def test_resume_creates_output(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline, extractor, rewriter, sweeper, checkpointer = (
+            self._make_pipeline_with_mocks(config)
+        )
+
+        restored_state = PipelineState.create("doc-1", "Hello.")
+        restored_state.cursor_position = 6
+        restored_state.chunk_counter = 1
+        restored_state.chunks["chunk-001"] = _chunk("chunk-001", (0, 6))
+
+        checkpointer.load.return_value = restored_state
+
+        pipeline.resume()
+
+        assert (tmp_path / "hierarchy.json").exists()
+        assert (tmp_path / "index.md").exists()
+
+
 class TestResumeCommand:
     @patch("chunker.cli.Pipeline")
     def test_resume_creates_pipeline_and_calls_resume(
