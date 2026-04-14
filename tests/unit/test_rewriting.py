@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from chunker.config import ChunkerConfig
-from chunker.context import ContextBuilder, ContextItem
+from chunker.context import ContextBuilder
 from chunker.llm.schemas import RewriteResult
 from chunker.models import Chunk
 from chunker.nodes.rewriting import ChunkRewriter
@@ -60,7 +60,10 @@ class TestChunkRewriter:
 
         result = rewriter.rewrite(chunk, state)
 
-        assert result.rewritten_text == "The researchers used a novel approach to solve the problem."
+        assert (
+            result.rewritten_text
+            == "The researchers used a novel approach to solve the problem."
+        )
 
     def test_populates_summary(self, config, mock_llm):
         context_builder = ContextBuilder(config)

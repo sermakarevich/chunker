@@ -40,9 +40,7 @@ class ChunkExtractor:
                 self._force_split(window, chunk_id, "max_tokens")
                 break
 
-            result = self._llm.check_completeness(
-                window.text, "", chunk_id=chunk_id
-            )
+            result = self._llm.check_completeness(window.text, "", chunk_id=chunk_id)
             attempts += 1
 
             if result.complete:
@@ -56,9 +54,7 @@ class ChunkExtractor:
                     # Both validation attempts failed — sentence fallback
                     self._sentence_fallback(window)
                     logger.warning(
-                        json.dumps(
-                            {"event": "phrase_not_found", "chunk_id": chunk_id}
-                        )
+                        json.dumps({"event": "phrase_not_found", "chunk_id": chunk_id})
                     )
                 break
             else:
@@ -115,9 +111,7 @@ class ChunkExtractor:
                 return window.start + idx
         return None
 
-    def _force_split(
-        self, window: CursorWindow, chunk_id: str, reason: str
-    ) -> None:
+    def _force_split(self, window: CursorWindow, chunk_id: str, reason: str) -> None:
         end = window.last_sentence_boundary()
         if end <= window.start:
             end = window.end

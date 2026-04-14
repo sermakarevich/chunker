@@ -87,7 +87,9 @@ class TestCursorWindow:
         assert window.start == 0
         assert window.end > 0
 
-    def test_expand_returns_true_when_more_text(self, agentic_rag_text, config, splitter):
+    def test_expand_returns_true_when_more_text(
+        self, agentic_rag_text, config, splitter
+    ):
         window = CursorWindow(agentic_rag_text, 0, splitter, config)
         initial_end = window.end
         result = window.expand()

@@ -22,9 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--model", default=None, help="Model name")
     run_parser.add_argument("--output-dir", default=None, help="Output directory")
 
-    resume_parser = subparsers.add_parser(
-        "resume", help="Resume from checkpoint"
-    )
+    resume_parser = subparsers.add_parser("resume", help="Resume from checkpoint")
     resume_parser.add_argument("checkpoint_file", help="Path to checkpoint file")
     resume_parser.add_argument("--output-dir", default=None, help="Output directory")
 

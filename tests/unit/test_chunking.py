@@ -20,7 +20,9 @@ class TestValidateBoundaryPhrase:
         assert validate_boundary_phrase("missing", "Some other text.") is None
 
     def test_exact_match_required(self):
-        assert validate_boundary_phrase("new section", "Text. New section here.") is None
+        assert (
+            validate_boundary_phrase("new section", "Text. New section here.") is None
+        )
 
     def test_returns_first_occurrence(self):
         text = "Word here. Word again."
@@ -119,9 +121,7 @@ class TestChunkExtractorExpansion:
         llm = MagicMock()
         llm.check_completeness.side_effect = [
             CompletenessResult(complete=False),
-            CompletenessResult(
-                complete=True, boundary_phrase="Third sentence here."
-            ),
+            CompletenessResult(complete=True, boundary_phrase="Third sentence here."),
         ]
         config = ChunkerConfig(
             min_chunk_tokens=3, max_chunk_tokens=500, max_expansion_attempts=5
@@ -145,9 +145,7 @@ class TestChunkExtractorBoundaryRetry:
         llm = MagicMock()
         llm.check_completeness.side_effect = [
             CompletenessResult(complete=True, boundary_phrase="Not in text"),
-            CompletenessResult(
-                complete=True, boundary_phrase="A new topic emerges."
-            ),
+            CompletenessResult(complete=True, boundary_phrase="A new topic emerges."),
         ]
         config = ChunkerConfig(
             min_chunk_tokens=3, max_chunk_tokens=500, max_expansion_attempts=5
@@ -179,9 +177,7 @@ class TestChunkExtractorBoundaryRetry:
 
         assert llm.check_completeness.call_count == 2
         assert chunk.source_span[0] < chunk.source_span[1]
-        assert (
-            text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text
-        )
+        assert text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text
         assert any("phrase_not_found" in r.message for r in caplog.records)
 
 
@@ -202,9 +198,7 @@ class TestChunkExtractorForceSplit:
 
         assert chunk.forced_split is True
         assert any("forced_split" in r.message for r in caplog.records)
-        assert (
-            text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text
-        )
+        assert text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text
 
     def test_force_split_max_attempts(self, caplog):
         text = (
@@ -240,6 +234,4 @@ class TestChunkExtractorForceSplit:
         with caplog.at_level(logging.WARNING):
             chunk = extractor.extract_next(state)
 
-        assert (
-            text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text
-        )
+        assert text[chunk.source_span[0] : chunk.source_span[1]] == chunk.original_text

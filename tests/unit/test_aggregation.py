@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from unittest.mock import MagicMock
 
-import pytest
 
 from chunker.config import ChunkerConfig
 from chunker.llm.schemas import GroupingResult
@@ -12,7 +11,6 @@ from chunker.models import Chunk
 from chunker.nodes.aggregation import (
     AggregationSweeper,
     GroupValidator,
-    ValidationResult,
     even_split_fallback,
 )
 from chunker.state import PipelineState
@@ -73,9 +71,7 @@ def _mock_llm(groups=None, summary="Group summary."):
 class TestGroupValidator:
     def test_valid_contiguous_groups(self):
         v = GroupValidator(min_size=2, max_size=5)
-        result = v.validate(
-            [["a", "b", "c"], ["d", "e"]], ["a", "b", "c", "d", "e"]
-        )
+        result = v.validate([["a", "b", "c"], ["d", "e"]], ["a", "b", "c", "d", "e"])
         assert result.valid is True
         assert result.hard_violations == []
         assert result.soft_violations == []
@@ -139,9 +135,7 @@ class TestEvenSplitFallback:
         assert flat == ids
 
     def test_custom_target_size(self):
-        result = even_split_fallback(
-            ["a", "b", "c", "d", "e", "f"], target_size=3
-        )
+        result = even_split_fallback(["a", "b", "c", "d", "e", "f"], target_size=3)
         assert len(result) == 2
         assert all(len(g) == 3 for g in result)
 

@@ -19,9 +19,7 @@ class ContextBuilder:
     def __init__(self, config: ChunkerConfig) -> None:
         self._config = config
         profile = MODEL_PROFILES.get(config.model)
-        self._token_factor = (
-            profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
-        )
+        self._token_factor = profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
 
     def build(self, state: PipelineState) -> list[ContextItem]:
         budget = self._config.context_budget_tokens

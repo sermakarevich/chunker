@@ -14,7 +14,9 @@ def _load(name: str) -> str:
 
 
 def completeness_prompt(window_text: str, context_text: str) -> str:
-    return _load("completeness").format(window_text=window_text, context_text=context_text)
+    return _load("completeness").format(
+        window_text=window_text, context_text=context_text
+    )
 
 
 def rewrite_prompt(chunk_text: str, context_text: str) -> str:

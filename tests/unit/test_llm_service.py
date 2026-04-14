@@ -33,7 +33,9 @@ def _mock_model_structured(parsed_result, raw_content: str = "{}"):
     return model
 
 
-def _mock_model_structured_raw(parsed_result, raw_content: str = "{}", usage: dict | None = None):
+def _mock_model_structured_raw(
+    parsed_result, raw_content: str = "{}", usage: dict | None = None
+):
     """Mock that returns include_raw=True format: dict with raw, parsed, parsing_error."""
     model = MagicMock()
     structured = MagicMock()
@@ -87,7 +89,9 @@ def _mock_model_always_failing():
 
 class TestCheckCompleteness:
     def test_returns_complete_result(self):
-        expected = CompletenessResult(complete=True, boundary_phrase="Next section begins")
+        expected = CompletenessResult(
+            complete=True, boundary_phrase="Next section begins"
+        )
         model = _mock_model_structured_raw(expected)
         svc = LLMService(model, ChunkerConfig())
 
@@ -190,7 +194,9 @@ class TestStructuredLogging:
     def test_logs_successful_call(self, caplog):
         expected = CompletenessResult(complete=True, boundary_phrase="Next")
         usage = {"prompt_tokens": 100, "completion_tokens": 20}
-        model = _mock_model_structured_raw(expected, raw_content='{"complete": true}', usage=usage)
+        model = _mock_model_structured_raw(
+            expected, raw_content='{"complete": true}', usage=usage
+        )
         svc = LLMService(model, ChunkerConfig())
 
         with caplog.at_level(logging.INFO, logger="chunker.llm.service"):

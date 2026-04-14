@@ -286,7 +286,9 @@ class TestFormatContext:
     def test_single_item_formatted(self):
         config = ChunkerConfig()
         builder = ContextBuilder(config)
-        item = ContextItem(source="predecessor:chunk-001", text="Hello world.", token_count=2)
+        item = ContextItem(
+            source="predecessor:chunk-001", text="Hello world.", token_count=2
+        )
 
         result = builder.format_context([item])
 
@@ -299,7 +301,9 @@ class TestFormatContext:
         builder = ContextBuilder(config)
         items = [
             ContextItem(source="predecessor:chunk-001", text="First.", token_count=1),
-            ContextItem(source="summary:L1:block-L1-001", text="Second.", token_count=1),
+            ContextItem(
+                source="summary:L1:block-L1-001", text="Second.", token_count=1
+            ),
         ]
 
         result = builder.format_context(items)

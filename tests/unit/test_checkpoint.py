@@ -184,9 +184,7 @@ class TestAtomicWrite:
 
 
 class TestRoundtripEquality:
-    def test_full_roundtrip_produces_equal_state(
-        self, checkpoint_path, sample_state
-    ):
+    def test_full_roundtrip_produces_equal_state(self, checkpoint_path, sample_state):
         cp = Checkpointer(checkpoint_path)
         cp.save(sample_state)
         restored = cp.load()

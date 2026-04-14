@@ -10,8 +10,7 @@ from chunker.state import PipelineState
 class JsonExporter:
     def export(self, state: PipelineState) -> dict:
         root_block_ids = [
-            bid for bid, block in state.blocks.items()
-            if block.parent_block_id is None
+            bid for bid, block in state.blocks.items() if block.parent_block_id is None
         ]
 
         chunks = {}
@@ -78,23 +77,28 @@ class MarkdownRenderer:
             lines.append("")
             lines.append(f"**Parent:** [[blocks/{chunk.parent_block_id}]]")
 
-        lines.extend([
-            "",
-            "## Summary",
-            chunk.summary,
-            "",
-            "## Content",
-            chunk.rewritten_text,
-            "",
-            "## Original",
-            chunk.original_text,
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Summary",
+                chunk.summary,
+                "",
+                "## Content",
+                chunk.rewritten_text,
+                "",
+                "## Original",
+                chunk.original_text,
+                "",
+            ]
+        )
 
         (chunks_dir / f"{chunk.id}.md").write_text("\n".join(lines))
 
     def _write_block(
-        self, block: SummaryBlock, state: PipelineState, blocks_dir: Path,
+        self,
+        block: SummaryBlock,
+        state: PipelineState,
+        blocks_dir: Path,
     ) -> None:
         label = block.id.replace("block-", "")
         lines = [f"# Summary Block {label}"]
@@ -103,13 +107,15 @@ class MarkdownRenderer:
             lines.append("")
             lines.append(f"**Parent:** [[blocks/{block.parent_block_id}]]")
 
-        lines.extend([
-            "",
-            "## Summary",
-            block.summary,
-            "",
-            "## Children",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Summary",
+                block.summary,
+                "",
+                "## Children",
+            ]
+        )
 
         for child_id in block.child_ids:
             link = _child_link(child_id, state.blocks)
@@ -120,8 +126,7 @@ class MarkdownRenderer:
 
     def _write_index(self, state: PipelineState, output_dir: Path) -> None:
         root_block_ids = [
-            bid for bid, block in state.blocks.items()
-            if block.parent_block_id is None
+            bid for bid, block in state.blocks.items() if block.parent_block_id is None
         ]
 
         lines = [f"# {state.document_id}", "", "## Top-Level Summaries"]

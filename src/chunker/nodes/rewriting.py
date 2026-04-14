@@ -7,7 +7,9 @@ from chunker.state import PipelineState
 
 
 class ChunkRewriter:
-    def __init__(self, llm_service: LLMService, context_builder: ContextBuilder) -> None:
+    def __init__(
+        self, llm_service: LLMService, context_builder: ContextBuilder
+    ) -> None:
         self._llm = llm_service
         self._context = context_builder
 

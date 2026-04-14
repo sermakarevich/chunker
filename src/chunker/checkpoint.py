@@ -14,9 +14,7 @@ class Checkpointer:
     def save(self, state: PipelineState) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         data = json.dumps(state.to_dict(), indent=2)
-        fd, tmp = tempfile.mkstemp(
-            dir=self._path.parent, suffix=".tmp"
-        )
+        fd, tmp = tempfile.mkstemp(dir=self._path.parent, suffix=".tmp")
         try:
             with open(fd, "w") as f:
                 f.write(data)

@@ -55,9 +55,7 @@ class CursorWindow:
         self._boundary_idx = 0
 
         profile = MODEL_PROFILES.get(config.model)
-        self._token_factor = (
-            profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
-        )
+        self._token_factor = profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
         self._min_chunk_tokens = config.min_chunk_tokens
 
         while self.token_count < self._min_chunk_tokens:
@@ -95,9 +93,7 @@ class CursorWindow:
 
     def last_sentence_boundary(self) -> int:
         sentence_splitter = TextSplitter("sentences")
-        boundaries = sentence_splitter.split_from(
-            self._source_text, self._start
-        )
+        boundaries = sentence_splitter.split_from(self._source_text, self._start)
         last = self._start
         for b in boundaries:
             if b <= self._end:

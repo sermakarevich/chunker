@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from chunker.models import Chunk, SummaryBlock
 
@@ -41,13 +41,9 @@ class PipelineState:
             "cursor_position": self.cursor_position,
             "chunks": {k: v.to_dict() for k, v in self.chunks.items()},
             "blocks": {k: v.to_dict() for k, v in self.blocks.items()},
-            "pending_summaries": {
-                str(k): v for k, v in self.pending_summaries.items()
-            },
+            "pending_summaries": {str(k): v for k, v in self.pending_summaries.items()},
             "chunk_counter": self.chunk_counter,
-            "block_counters": {
-                str(k): v for k, v in self.block_counters.items()
-            },
+            "block_counters": {str(k): v for k, v in self.block_counters.items()},
         }
 
     def to_json(self) -> str:
@@ -59,20 +55,11 @@ class PipelineState:
             document_id=data["document_id"],
             source_text=data["source_text"],
             cursor_position=data["cursor_position"],
-            chunks={
-                k: Chunk.from_dict(v) for k, v in data["chunks"].items()
-            },
-            blocks={
-                k: SummaryBlock.from_dict(v)
-                for k, v in data["blocks"].items()
-            },
-            pending_summaries={
-                int(k): v for k, v in data["pending_summaries"].items()
-            },
+            chunks={k: Chunk.from_dict(v) for k, v in data["chunks"].items()},
+            blocks={k: SummaryBlock.from_dict(v) for k, v in data["blocks"].items()},
+            pending_summaries={int(k): v for k, v in data["pending_summaries"].items()},
             chunk_counter=data["chunk_counter"],
-            block_counters={
-                int(k): v for k, v in data["block_counters"].items()
-            },
+            block_counters={int(k): v for k, v in data["block_counters"].items()},
         )
 
     @classmethod

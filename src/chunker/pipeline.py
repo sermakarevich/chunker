@@ -31,9 +31,7 @@ class ProcessingResult:
         cls, state: PipelineState, warnings: list[str] | None = None
     ) -> ProcessingResult:
         root_ids = [
-            bid
-            for bid, block in state.blocks.items()
-            if block.parent_block_id is None
+            bid for bid, block in state.blocks.items() if block.parent_block_id is None
         ]
         return cls(
             state=state,

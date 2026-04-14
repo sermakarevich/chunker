@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from chunker.config import MODEL_PROFILES, ChunkerConfig, estimate_tokens
 from chunker.llm.service import LLMService
@@ -61,9 +61,7 @@ class GroupValidator:
         )
 
 
-def even_split_fallback(
-    ids: list[str], target_size: int = 4
-) -> list[list[str]]:
+def even_split_fallback(ids: list[str], target_size: int = 4) -> list[list[str]]:
     n = len(ids)
     if n == 0:
         return []
@@ -84,9 +82,7 @@ class AggregationSweeper:
         self._llm = llm_service
         self._config = config
         profile = MODEL_PROFILES.get(config.model)
-        self._token_factor = (
-            profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
-        )
+        self._token_factor = profile.token_factor if profile else _DEFAULT_TOKEN_FACTOR
 
     def sweep(self, state: PipelineState) -> None:
         level = 0
@@ -184,10 +180,7 @@ class AggregationSweeper:
     def _indices_to_ids(
         index_groups: list[list[int]], ordered_ids: list[str]
     ) -> list[list[str]]:
-        return [
-            [ordered_ids[idx] for idx in group]
-            for group in index_groups
-        ]
+        return [[ordered_ids[idx] for idx in group] for group in index_groups]
 
     def _create_blocks(
         self,
@@ -203,9 +196,7 @@ class AggregationSweeper:
             child_summaries = [
                 self._get_summary(state, child_id) for child_id in group_ids
             ]
-            summary = self._llm.summarize_group(
-                child_summaries, block_id=block_id
-            )
+            summary = self._llm.summarize_group(child_summaries, block_id=block_id)
 
             block = SummaryBlock(
                 id=block_id,

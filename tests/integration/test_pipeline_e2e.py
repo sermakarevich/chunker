@@ -110,9 +110,7 @@ class TestPipelineEndToEnd:
 
         mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
 
-        mock_llm.group_summaries.return_value = GroupingResult(
-            groups=[[0, 1], [2, 3]]
-        )
+        mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
 
         mock_llm.summarize_group.return_value = (
             "Overview of ML pipeline: data, features, evaluation, tuning, deployment."
@@ -210,7 +208,9 @@ class TestPipelineResume:
         state.chunks["chunk-001"] = Chunk(
             id="chunk-001",
             source_span=(0, DOCUMENT.find("Feature engineering transforms") // 2),
-            original_text=DOCUMENT[: DOCUMENT.find("Feature engineering transforms") // 2],
+            original_text=DOCUMENT[
+                : DOCUMENT.find("Feature engineering transforms") // 2
+            ],
             rewritten_text="[Rewritten 1]",
             summary="Summary 1.",
             parent_block_id=None,
@@ -263,9 +263,7 @@ class TestPipelineResume:
             )
 
         mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
-        mock_llm.group_summaries.return_value = GroupingResult(
-            groups=[[0, 1], [2, 3]]
-        )
+        mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
         mock_llm.summarize_group.return_value = "Group summary."
 
         result = pipeline.resume()

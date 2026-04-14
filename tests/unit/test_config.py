@@ -3,7 +3,6 @@ import json
 from chunker.config import (
     MODEL_PROFILES,
     ChunkerConfig,
-    ModelProfile,
     estimate_tokens,
 )
 

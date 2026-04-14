@@ -359,9 +359,7 @@ class TestRunCommand:
         mock_pipeline_cls.return_value = mock_pipeline
 
         parser = build_parser()
-        args = parser.parse_args(
-            ["run", str(input_file), "--model", "gemma4:12b"]
-        )
+        args = parser.parse_args(["run", str(input_file), "--model", "gemma4:12b"])
 
         run_command(args)
 
@@ -372,7 +370,9 @@ class TestRunCommand:
 
 class TestResumeCommand:
     @patch("chunker.cli.Pipeline")
-    def test_resume_creates_pipeline_and_calls_resume(self, mock_pipeline_cls, tmp_path):
+    def test_resume_creates_pipeline_and_calls_resume(
+        self, mock_pipeline_cls, tmp_path
+    ):
         checkpoint_file = tmp_path / "checkpoint.json"
         checkpoint_file.write_text("{}")
 
