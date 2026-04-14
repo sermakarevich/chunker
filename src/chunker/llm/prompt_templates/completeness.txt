@@ -18,6 +18,6 @@ Signs the boundary is NOT complete:
 ## Candidate window
 {window_text}
 
-Respond with JSON:
+Respond with JSON only. Do NOT echo these instructions or include any text outside the JSON object.
 - "complete": true if the window ends at a logically complete point, false otherwise
-- "boundary_phrase": if complete is true, copy the EXACT verbatim phrase (5-15 words) from the text where the next chunk should begin. This phrase must appear character-for-character in the text after the current window. If complete is false, set to null.
+- "boundary_phrase": if complete is true, copy the EXACT verbatim phrase (5-15 words) from the text where the next chunk should begin. This phrase must appear character-for-character in the text after the current window. Do NOT use "Respond with JSON" or any instruction text as the boundary phrase. If complete is false, set to null.

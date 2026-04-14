@@ -299,8 +299,8 @@ class TestBuildParser:
 
     def test_run_with_model(self):
         parser = build_parser()
-        args = parser.parse_args(["run", "input.txt", "--model", "gemma4:12b"])
-        assert args.model == "gemma4:12b"
+        args = parser.parse_args(["run", "input.txt", "--model", "gemma4:26b"])
+        assert args.model == "gemma4:26b"
 
     def test_run_with_output_dir(self):
         parser = build_parser()
@@ -359,13 +359,37 @@ class TestRunCommand:
         mock_pipeline_cls.return_value = mock_pipeline
 
         parser = build_parser()
-        args = parser.parse_args(["run", str(input_file), "--model", "gemma4:12b"])
+        args = parser.parse_args(["run", str(input_file), "--model", "gemma4:26b"])
 
         run_command(args)
 
         config = mock_pipeline_cls.call_args[0][0]
-        assert config.model == "gemma4:12b"
-        assert config.max_chunk_tokens == 400  # gemma4:12b profile value
+        assert config.model == "gemma4:26b"
+        assert config.max_chunk_tokens == 2000  # gemma4:26b profile value
+
+    @patch("chunker.cli.Pipeline")
+    def test_run_places_checkpoint_in_output_dir(self, mock_pipeline_cls, tmp_path):
+        input_file = tmp_path / "doc.txt"
+        input_file.write_text("text")
+        output_dir = tmp_path / "my_output"
+
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.total_chunks = 0
+        mock_result.total_blocks = 0
+        mock_result.root_block_ids = []
+        mock_pipeline.run.return_value = mock_result
+        mock_pipeline_cls.return_value = mock_pipeline
+
+        parser = build_parser()
+        args = parser.parse_args(
+            ["run", str(input_file), "--output-dir", str(output_dir)]
+        )
+
+        run_command(args)
+
+        config = mock_pipeline_cls.call_args[0][0]
+        assert config.checkpoint_path == str(output_dir / "checkpoint.json")
 
 
 class TestPipelineOutput:

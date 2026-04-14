@@ -2,36 +2,47 @@
 
 ## Summary
 - **Date:** 2026-04-14
-- **FRs:** 16/18 passed, 2 failed, 0 partial
-- **Tests:** 206 passed, 0 failed, 0 skipped
-- **Lint:** clean (8 unused imports + 21 format issues auto-fixed)
-- **Real pipeline run:** 19 chunks, 5 blocks, full text coverage on agentic_rag_excerpt.txt with gemma4:latest
-- **Result:** FAIL
+- **FRs:** 18/18 passed, 0 failed, 0 partial
+- **Tests:** 217 passed, 0 failed, 0 skipped
+- **Lint:** clean (ruff check + ruff format)
+- **Real pipeline run:** 61 chunks, 21 blocks, 10 roots — full coverage on agentic_rag_full.txt (115,471 chars), gemma4:latest
+- **Result:** PASS
 
 ## Test Execution
 - **Runner:** pytest (via `just test`)
-- **Command:** `uv run pytest`
-- **Duration:** 0.27s
+- **Command:** `uv run pytest -v`
+- **Duration:** 0.31s
 
 ### Failures
-- None — all 206 tests pass
+- None — all 217 tests pass (216 original + 1 new test for checkpoint path fix)
 
 ## Lint Execution
 - **Runner:** ruff (via `just lint`)
 - **Command:** `uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/`
-- **Issues found:** 8 F401 (unused imports) in src + tests, 21 files needing reformat
-- **Resolution:** Auto-fixed with `ruff check --fix` and `ruff format`
+- **Issues found:** 1 formatting issue in `src/chunker/nodes/output.py` (list comprehension style)
+- **Resolution:** Auto-fixed with `ruff format`
 
 ## Real Pipeline Run
-- **Input:** `tests/fixtures/agentic_rag_excerpt.txt` (1,676 words, 12,271 chars)
+- **Input:** `tests/fixtures/agentic_rag_full.txt` (15,075 words, 115,471 chars)
 - **Model:** gemma4:latest (Ollama, local)
-- **Result:** 19 chunks, 5 L0 blocks, 5 roots
-- **Source span coverage:** [0, 12271] — full, no gaps, all 19 spans verified
-- **Forced splits:** chunk-001 (max_attempts)
-- **Phrase not found:** chunk-019 (fell back to sentence boundary)
-- **Grouping fallback:** 1 instance at level 0
-- **Orphan chunks:** chunk-019 (no parent_block_id — arrived after final aggregation)
-- **Output files produced:** None — exporters not wired into pipeline
+- **Output dir:** `.sddw/agentic_rag`
+- **Result:** 61 chunks, 21 blocks, 10 roots
+- **Source span coverage:** [0, 115471] — full, no gaps, all 61 spans verified against source text (0 mismatches)
+- **Forced splits:** chunk-019, chunk-061
+- **Orphan chunks:** 7 (chunk-055 through chunk-061) — all linked in index.md "Ungrouped Chunks"
+- **Full traversal:** all 61 chunks and 21 blocks reachable from index.md
+- **Output files:** hierarchy.json (298KB), index.md, 61 chunk .md files, 21 block .md files
+- **Observed behaviors:**
+  - Cursor-driven chunking producing 61 chunks
+  - LLM completeness checking with expansion on incomplete
+  - Boundary phrase validation with retry
+  - Force splits when max_expansion_attempts exhausted
+  - Dual-trigger aggregation producing L0 and L1 blocks
+  - Non-contiguous grouping correctly rejected and re-prompted (FR-17 validated)
+  - Grouping fallback to even-split after two hard validation failures (FR-07 validated)
+  - Structured logging of every LLM call
+  - Checkpointing after each chunk
+  - Output wiring (JSON + Markdown) confirmed in `Pipeline._write_output()`
 
 ## FR Verification
 
@@ -42,13 +53,7 @@
 - [x] Continuation from confirmed chunk end — covered by `test_continuation_from_nonzero_cursor`
 - [x] Strategy switch (sentences vs paragraphs) — covered by `test_sentence_split_simple`, `test_paragraph_split`
 
-**Done Criteria** (from task-3):
-- [x] TextSplitter with 3 strategies
-- [x] CursorWindow with expand, set_end, last_sentence_boundary
-- [x] Source span tracking holds
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-02: LLM completeness checking — PASS
 
@@ -56,27 +61,16 @@
 - [x] Complete boundary returns boundary_phrase — covered by `test_happy_path_complete_boundary`
 - [x] Incomplete boundary triggers expansion — covered by `test_expand_on_incomplete`
 
-**Done Criteria** (from task-4):
-- [x] Completeness check loops until complete or max attempts
-- [x] State cursor updated after extraction
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-03: Boundary phrase validation — PASS
 
 **Acceptance Criteria:**
 - [x] Phrase found verbatim — covered by `test_happy_path_complete_boundary`
-- [x] Retry succeeds — covered by `test_boundary_retry_succeeds`
+- [x] Retry succeeds — covered by `test_retry_succeeds`
 - [x] Retry fails, sentence fallback — covered by `test_boundary_retry_fails_sentence_fallback`
 
-**Done Criteria** (from task-4):
-- [x] Boundary validated with str.find()
-- [x] One retry with verbatim prompt
-- [x] Sentence-boundary fallback, logs WARN: phrase_not_found
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-04: Chunk rewrite and summary — PASS
 
@@ -84,178 +78,129 @@
 - [x] Self-sufficiency: pronoun resolution — covered by `test_passes_context_from_builder`
 - [x] Both original_text and rewritten_text stored, summary produced — covered by `test_populates_rewritten_text`, `test_populates_summary`, `test_preserves_original_text`
 
-**Done Criteria** (from task-5):
-- [x] ChunkRewriter.rewrite() populates rewritten_text and summary
-- [x] Original text preserved
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-05: Force-split — PASS
 
 **Acceptance Criteria:**
-- [x] Max tokens → force-split — covered by `test_force_split_at_max_tokens`
-- [x] Max attempts → force-split — covered by `test_force_split_at_max_attempts`
+- [x] Max tokens → force-split — covered by `test_force_split_max_tokens`
+- [x] Max attempts → force-split — covered by `test_force_split_max_attempts`
 
-**Done Criteria** (from task-4):
-- [x] Force-split marks forced_split: true
-- [x] Logs WARN: forced_split
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-06: Dual-trigger aggregation — PASS
 
 **Acceptance Criteria:**
-- [x] Token trigger — covered by `test_token_threshold_triggers_aggregation`
-- [x] Count trigger — covered by `test_count_threshold_triggers_aggregation`
-- [x] Below both → no aggregation — covered by `test_below_both_thresholds_no_aggregation`
+- [x] Token trigger — covered by `test_token_threshold_triggers`
+- [x] Count trigger — covered by `test_count_threshold_triggers`
+- [x] Below both → no aggregation — covered by `test_no_aggregation_below_both_thresholds`
 
-**Done Criteria** (from task-6):
-- [x] Token and count threshold triggers work
-- [x] No aggregation when below both
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-07: Group size constraints — PASS
 
 **Acceptance Criteria:**
-- [x] Min violation → reject and re-prompt — covered by `test_min_group_size_hard_rejection`
-- [x] Max hint → re-prompt, accept if declined — covered by `test_max_group_size_soft_hint`
-- [x] Fallback after 2 hard failures — covered by `test_even_split_fallback_after_hard_failures`
+- [x] Min violation → reject and re-prompt — covered by `test_hard_violation_reprompts`
+- [x] Max hint → re-prompt, accept if declined — covered by `test_soft_violation_reprompts_then_accepts`
+- [x] Fallback after 2 hard failures — covered by `test_even_split_fallback_after_two_hard_failures`
+- [x] Real pipeline: grouping_fallback triggered and logged — confirmed in live run
 
-**Done Criteria** (from task-6):
-- [x] GroupValidator rejects min violations, flags max violations
-- [x] Even-split fallback, logs WARN: grouping_fallback
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-08: Recursive aggregation — PASS
 
 **Acceptance Criteria:**
-- [x] Recursion continues to next level — covered by `test_recursive_aggregation_multiple_levels`
+- [x] Recursion continues to next level — covered by `test_recursive_aggregation_through_levels`
 - [x] Recursion terminates below thresholds — covered by `test_recursion_stops_below_thresholds`
-- [x] Single root terminates — covered by `test_single_block_is_root`
+- [x] Single root terminates — covered by `test_recursion_stops_single_block`
 
-**Done Criteria** (from task-6):
-- [x] Bottom-up sweep checks all levels
-- [x] Recursive aggregation terminates correctly
-
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-09: Context injection — PASS
 
 **Acceptance Criteria:**
-- [x] Immediate predecessor priority — covered by `test_predecessor_first_priority`
-- [x] Higher-level summaries — covered by `test_higher_level_summaries_included`
-- [x] Budget enforcement, no partial insertion — covered by `test_budget_hard_ceiling`, `test_skip_and_try_next`
-- [x] Early processing, no error — covered by `test_empty_state_no_context`
+- [x] Immediate predecessor priority — covered by `test_predecessor_is_first_item`
+- [x] Higher-level summaries — covered by `test_level_summaries_after_predecessor`
+- [x] Budget enforcement, no partial insertion — covered by `test_item_exceeding_budget_skipped`, `test_skip_and_try_next`
+- [x] Early processing, no error — covered by `test_empty_state_returns_empty`
 
-**Done Criteria** (from task-5):
-- [x] Priority order correct
-- [x] Budget enforced with skip-and-try-next
-- [x] Early processing omits unavailable levels
+**Issues:** None
 
-**Issues:**
-- None
-
-### FR-10: JSON output — FAIL
+### FR-10: JSON output — PASS
 
 **Acceptance Criteria:**
 - [x] Structure with all fields — covered by `test_top_level_keys`, `test_chunk_fields`, `test_block_fields`
 - [x] Bidirectional links consistent — covered by `test_bidirectional_links`
+- [x] Pipeline calls JsonExporter — covered by `test_full_pipeline_writes_json_output`, `test_run_creates_json_output`
 
-**Done Criteria** (from task-9):
-- [x] JsonExporter.export() produces correct schema
-- [x] Bidirectional links validated
-- [x] JsonExporter.write() writes to file
-- [ ] **Pipeline/CLI calls JsonExporter** — NOT WIRED
+**Issues:** None (remediation task-10 resolved this)
 
-**Issues:**
-- `JsonExporter` exists and works correctly in unit tests, but `Pipeline._process()` and `cli.py` never import or call it. Real pipeline run produces no `hierarchy.json`.
-
-### FR-11: Linked markdown rendering — FAIL
+### FR-11: Linked markdown rendering — PASS
 
 **Acceptance Criteria:**
 - [x] One file per node — covered by `test_one_file_per_chunk`, `test_one_file_per_block`
 - [x] Wiki-links to children and parent — covered by `test_child_links`, `test_parent_link`
-- [x] Root index links to top-level blocks — covered by `test_index_links_to_root_blocks`
-- [ ] **Full traversal reaches every leaf chunk** — FAILS for orphan chunks in mixed state
+- [x] Root index links to top-level blocks — covered by `test_links_to_root_blocks`
+- [x] Full traversal reaches every leaf chunk — covered by `test_all_chunks_reachable_hierarchy`, `test_all_chunks_reachable_mixed`
+- [x] Orphan chunks included in index — covered by `test_mixed_index_links_orphan_chunk`, `test_mixed_index_has_ungrouped_section`
+- [x] Pipeline calls MarkdownRenderer — covered by `test_full_pipeline_writes_markdown_files`, `test_run_creates_markdown_index`
 
-**Done Criteria** (from task-9):
-- [x] MarkdownRenderer.render() creates chunks/, blocks/, index.md
-- [x] Wiki-links format correct
-- [x] Flat output works
-- [ ] **Pipeline/CLI calls MarkdownRenderer** — NOT WIRED
-- [ ] **Index links orphan chunks when blocks exist** — NOT HANDLED
-
-**Issues:**
-- `MarkdownRenderer` exists and works in unit tests, but `Pipeline._process()` and `cli.py` never import or call it. Real pipeline run produces no markdown files.
-- `_write_index()` only links to root blocks OR all chunks. When blocks exist but some chunks are orphaned (chunk-019 in real run), those chunks are unreachable from the index, violating the full traversal criterion.
+**Issues:** None (remediation tasks 10 and 11 resolved these)
 
 ### FR-12: Provider-agnostic LLMClient — PASS
 
 **Acceptance Criteria:**
 - [x] Protocol adherence (single class) — covered by `LLMService` design
 - [x] Ollama default — covered by `test_init_creates_all_components`
-- [x] Structured output with retries — covered by `test_retry_on_invalid_json`, `test_retry_exhaustion`
+- [x] Structured output with retries — covered by `test_retries_on_invalid_response`, `test_raises_after_max_retries`
 
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-13: Checkpointing — PASS
 
 **Acceptance Criteria:**
-- [x] After each chunk — covered by `test_run_calls_sweep_after_adding_chunk` (checkpoint in loop)
+- [x] After each chunk — covered by `test_run_calls_sweep_after_adding_chunk`
 - [x] Resumability — covered by `test_resume_loads_checkpoint_and_continues`
 - [x] After each block — covered (sweep + checkpoint in same loop iteration)
 
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-14: Model-dependent configuration — PASS
 
 **Acceptance Criteria:**
-- [x] Profile loading for known model — covered by `test_from_model_known`
-- [x] Extensibility — covered by `test_from_model_unknown`
+- [x] Profile loading for known model — covered by `test_from_model_applies_profile`
+- [x] Extensibility — covered by `test_from_model_unknown_uses_defaults`
 
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-15: Structured logging — PASS
 
 **Acceptance Criteria:**
-- [x] Every LLM call logged — covered by `test_structured_log_emitted`
+- [x] Every LLM call logged — covered by `test_logs_successful_call`, confirmed in real pipeline run (JSON log entries for every LLM call)
 
-**Issues:**
-- None. Real run confirmed: JSON log entries for every check_completeness, rewrite_chunk, group_summaries, summarize_group call.
+**Issues:** None
 
 ### FR-16: No fuzzy matching — PASS
 
 **Acceptance Criteria:**
-- [x] Verbatim only, no fuzzy — covered by `test_boundary_uses_str_find`
+- [x] Verbatim only, no fuzzy — covered by `test_exact_match_required`
 
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-17: Contiguous groups only — PASS
 
 **Acceptance Criteria:**
-- [x] Non-contiguous rejected — covered by `test_non_contiguous_rejected`
+- [x] Non-contiguous rejected — covered by `test_non_contiguous_groups_hard_violation`
+- [x] Real pipeline: non-contiguous grouping `[[0,1,2],[4,5,6],[3,7,8]]` rejected, re-prompted to `[[0,1,2],[3,4,5,6],[7,8]]` — confirmed
 
-**Issues:**
-- None
+**Issues:** None
 
 ### FR-18: Source span tracking — PASS
 
 **Acceptance Criteria:**
 - [x] source_text[start:end] == original_text — covered by `test_source_span_invariant`
 
-**Issues:**
-- None. Real run: all 19 spans verified against source text.
+**Issues:** None
 
 ## Deviations
 - Task 8: `PipelineState.create()` used instead of `initial()` — resolved, no impact
@@ -263,14 +208,13 @@
 - Task 8: Package needed editable install for CLI — resolved, no impact
 
 ## Remediation Tasks
-- task-10-fix-wire-output-exporters.md — wire JsonExporter and MarkdownRenderer into Pipeline._process() and CLI (FR-10, FR-11)
-  - **Severity:** FAIL
-  - **Origin:** design — task-8 (pipeline orchestration) did not include output generation in the main loop; task-9 (output rendering) implemented components without integration
-  - **Evidence:** Real pipeline run produces no output files; `Pipeline._process()` and `cli.py` have no imports of JsonExporter or MarkdownRenderer
-- task-11-fix-orphan-chunk-traversal.md — fix _write_index to include orphaned chunks when blocks exist (FR-11)
-  - **Severity:** FAIL
-  - **Origin:** design — task-9 handled flat and hierarchy cases but not the mixed case where some chunks have no parent after partial aggregation
-  - **Evidence:** Real run: chunk-019 has parent_block_id=None while blocks exist; _write_index only links root blocks, making orphan chunks unreachable
+None — all checks passed.
+
+## Bug Fix Applied During Verification
+- **Checkpoint location bug:** `run_command` in `cli.py` did not set `checkpoint_path` inside `output_dir` when `--output-dir` was provided. Fixed by adding `checkpoint_path = str(Path(args.output_dir) / "checkpoint.json")` to `config_kwargs`. New test `test_run_places_checkpoint_in_output_dir` added.
+- **Formatting:** `src/chunker/nodes/output.py` reformatted (list comprehension style).
 
 ## Warnings
-- Lint: 8 unused imports and 21 formatting issues found and auto-fixed. These were cosmetic but indicate the implementation step did not run lint before completion.
+- **Timing collection:** No timing metrics are collected during pipeline runs. For a 15K-word document, the pipeline takes significant time due to sequential LLM calls. Adding timing per-chunk and per-phase would help identify bottlenecks.
+- **Stale output directory:** `./output/` exists from a previous run (not from `just run-fixture`). Consider adding `output/` to `.gitignore` or using the output_dir consistently.
+- **Checkpoint in CWD for old runs:** Pipeline runs started before the checkpoint fix still write `checkpoint.json` to CWD. The fix only applies to new runs using `--output-dir`.

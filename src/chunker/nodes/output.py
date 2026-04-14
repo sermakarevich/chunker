@@ -129,9 +129,7 @@ class MarkdownRenderer:
             bid for bid, block in state.blocks.items() if block.parent_block_id is None
         ]
         orphan_chunk_ids = [
-            cid
-            for cid, chunk in state.chunks.items()
-            if chunk.parent_block_id is None
+            cid for cid, chunk in state.chunks.items() if chunk.parent_block_id is None
         ]
 
         lines = [f"# {state.document_id}", "", "## Top-Level Summaries"]

@@ -36,6 +36,9 @@ def run_command(args: argparse.Namespace) -> None:
     config_kwargs = {}
     if args.output_dir:
         config_kwargs["output_dir"] = args.output_dir
+        config_kwargs["checkpoint_path"] = str(
+            Path(args.output_dir) / "checkpoint.json"
+        )
 
     if args.model:
         config = ChunkerConfig.from_model(args.model, **config_kwargs)
