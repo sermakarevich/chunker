@@ -372,7 +372,9 @@ class TestBuildMetadata:
     def test_higher_level_block_contexts_included(self):
         """Metadata includes context from blocks at levels above current."""
         state = _state_with_pending(4)
-        state.blocks["block-L1-001"] = _block("block-L1-001", level=1, context="L1 overview")
+        state.blocks["block-L1-001"] = _block(
+            "block-L1-001", level=1, context="L1 overview"
+        )
         sweeper = self._sweeper()
 
         meta = sweeper._build_metadata(state, ["chunk-001", "chunk-002"], level=0)
@@ -390,7 +392,9 @@ class TestBuildMetadata:
         """Metadata assembles both predecessor context and higher-level blocks."""
         state = _state_with_pending(4)
         state.chunks["chunk-002"].context = "Prev chunk context"
-        state.blocks["block-L2-001"] = _block("block-L2-001", level=2, context="L2 context")
+        state.blocks["block-L2-001"] = _block(
+            "block-L2-001", level=2, context="L2 context"
+        )
         sweeper = self._sweeper()
 
         meta = sweeper._build_metadata(state, ["chunk-003", "chunk-004"], level=0)

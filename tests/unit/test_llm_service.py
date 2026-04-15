@@ -164,7 +164,10 @@ class TestSynthesizeBlock:
         )
 
         assert isinstance(result, BlockContextResult)
-        assert result.context == "Comprehensive synthesis of child contexts covering topics A, B, and C."
+        assert (
+            result.context
+            == "Comprehensive synthesis of child contexts covering topics A, B, and C."
+        )
         assert result.summary == "Covers topics A, B, and C in detail."
         assert result.filename == "topics-a-b-c-overview"
 

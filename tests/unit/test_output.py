@@ -61,17 +61,23 @@ def hierarchy_state() -> PipelineState:
     state = PipelineState.create(document_id="doc-hier", source_text="x" * 300)
     state.chunks = {
         "chunk-001": _chunk(
-            "chunk-001", span=(0, 100), parent="block-L1-001",
+            "chunk-001",
+            span=(0, 100),
+            parent="block-L1-001",
             filename="first-topic-overview",
             summary="Covers the first topic in detail.",
         ),
         "chunk-002": _chunk(
-            "chunk-002", span=(100, 200), parent="block-L1-001",
+            "chunk-002",
+            span=(100, 200),
+            parent="block-L1-001",
             filename="second-topic-analysis",
             summary="Analyzes the second topic thoroughly.",
         ),
         "chunk-003": _chunk(
-            "chunk-003", span=(200, 300), parent="block-L1-001",
+            "chunk-003",
+            span=(200, 300),
+            parent="block-L1-001",
             filename="third-topic-summary",
             summary="Summarizes the third topic findings.",
         ),
@@ -105,12 +111,14 @@ def flat_state() -> PipelineState:
     state = PipelineState.create(document_id="doc-flat", source_text="y" * 200)
     state.chunks = {
         "chunk-001": _chunk(
-            "chunk-001", span=(0, 100),
+            "chunk-001",
+            span=(0, 100),
             filename="flat-topic-one",
             summary="First flat topic details.",
         ),
         "chunk-002": _chunk(
-            "chunk-002", span=(100, 200),
+            "chunk-002",
+            span=(100, 200),
             filename="flat-topic-two",
             summary="Second flat topic details.",
         ),
@@ -124,22 +132,29 @@ def mixed_state() -> PipelineState:
     state = PipelineState.create(document_id="doc-mixed", source_text="m" * 400)
     state.chunks = {
         "chunk-001": _chunk(
-            "chunk-001", span=(0, 100), parent="block-L1-001",
+            "chunk-001",
+            span=(0, 100),
+            parent="block-L1-001",
             filename="grouped-topic-one",
             summary="First grouped topic.",
         ),
         "chunk-002": _chunk(
-            "chunk-002", span=(100, 200), parent="block-L1-001",
+            "chunk-002",
+            span=(100, 200),
+            parent="block-L1-001",
             filename="grouped-topic-two",
             summary="Second grouped topic.",
         ),
         "chunk-003": _chunk(
-            "chunk-003", span=(200, 300), parent="block-L1-001",
+            "chunk-003",
+            span=(200, 300),
+            parent="block-L1-001",
             filename="grouped-topic-three",
             summary="Third grouped topic.",
         ),
         "chunk-004": _chunk(
-            "chunk-004", span=(300, 400),
+            "chunk-004",
+            span=(300, 400),
             filename="orphan-topic",
             summary="Ungrouped orphan topic.",
         ),
@@ -163,22 +178,30 @@ def multi_root_state() -> PipelineState:
     state = PipelineState.create(document_id="doc-multi", source_text="z" * 400)
     state.chunks = {
         "chunk-001": _chunk(
-            "chunk-001", span=(0, 100), parent="block-L1-001",
+            "chunk-001",
+            span=(0, 100),
+            parent="block-L1-001",
             filename="multi-topic-one",
             summary="First multi-root topic.",
         ),
         "chunk-002": _chunk(
-            "chunk-002", span=(100, 200), parent="block-L1-001",
+            "chunk-002",
+            span=(100, 200),
+            parent="block-L1-001",
             filename="multi-topic-two",
             summary="Second multi-root topic.",
         ),
         "chunk-003": _chunk(
-            "chunk-003", span=(200, 300), parent="block-L1-002",
+            "chunk-003",
+            span=(200, 300),
+            parent="block-L1-002",
             filename="multi-topic-three",
             summary="Third multi-root topic.",
         ),
         "chunk-004": _chunk(
-            "chunk-004", span=(300, 400), parent="block-L1-002",
+            "chunk-004",
+            span=(300, 400),
+            parent="block-L1-002",
             filename="multi-topic-four",
             summary="Fourth multi-root topic.",
         ),
@@ -415,12 +438,14 @@ class TestFilenameDedup:
         state = PipelineState.create(document_id="doc-dup", source_text="d" * 200)
         state.chunks = {
             "chunk-001": _chunk(
-                "chunk-001", span=(0, 100),
+                "chunk-001",
+                span=(0, 100),
                 filename="same-topic",
                 summary="First same-topic chunk.",
             ),
             "chunk-002": _chunk(
-                "chunk-002", span=(100, 200),
+                "chunk-002",
+                span=(100, 200),
                 filename="same-topic",
                 summary="Second same-topic chunk.",
             ),
@@ -435,17 +460,20 @@ class TestFilenameDedup:
         state = PipelineState.create(document_id="doc-dup3", source_text="t" * 300)
         state.chunks = {
             "chunk-001": _chunk(
-                "chunk-001", span=(0, 100),
+                "chunk-001",
+                span=(0, 100),
                 filename="repeated",
                 summary="First repeated.",
             ),
             "chunk-002": _chunk(
-                "chunk-002", span=(100, 200),
+                "chunk-002",
+                span=(100, 200),
                 filename="repeated",
                 summary="Second repeated.",
             ),
             "chunk-003": _chunk(
-                "chunk-003", span=(200, 300),
+                "chunk-003",
+                span=(200, 300),
                 filename="repeated",
                 summary="Third repeated.",
             ),
@@ -477,7 +505,9 @@ class TestChunkMarkdown:
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
-        assert "[[blocks/level-one-group|Groups first three topics together.]]" in content
+        assert (
+            "[[blocks/level-one-group|Groups first three topics together.]]" in content
+        )
 
     def test_context_body(
         self,
@@ -536,7 +566,9 @@ class TestBlockMarkdown:
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "blocks" / "level-one-group.md").read_text()
-        assert "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+        assert (
+            "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+        )
 
     def test_root_block_no_parent_link(
         self,
@@ -572,9 +604,18 @@ class TestBlockMarkdown:
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "blocks" / "level-one-group.md").read_text()
-        assert "[[chunks/first-topic-overview|Covers the first topic in detail.]]" in content
-        assert "[[chunks/second-topic-analysis|Analyzes the second topic thoroughly.]]" in content
-        assert "[[chunks/third-topic-summary|Summarizes the third topic findings.]]" in content
+        assert (
+            "[[chunks/first-topic-overview|Covers the first topic in detail.]]"
+            in content
+        )
+        assert (
+            "[[chunks/second-topic-analysis|Analyzes the second topic thoroughly.]]"
+            in content
+        )
+        assert (
+            "[[chunks/third-topic-summary|Summarizes the third topic findings.]]"
+            in content
+        )
 
     def test_block_children_link_to_blocks_with_summary(
         self,
@@ -583,7 +624,9 @@ class TestBlockMarkdown:
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "blocks" / "top-level-overview.md").read_text()
-        assert "[[blocks/level-one-group|Groups first three topics together.]]" in content
+        assert (
+            "[[blocks/level-one-group|Groups first three topics together.]]" in content
+        )
 
 
 # --- Index file ---
@@ -606,7 +649,9 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+        assert (
+            "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+        )
 
     def test_flat_index_links_to_chunks_with_summary(
         self,
