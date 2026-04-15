@@ -1,0 +1,40 @@
+# software-estimation-principles
+
+**Parent:** [[content/L1/development-methodologies-prototyping-dsls-and-estimation|development-methodologies-prototyping-dsls-and-estimation]] — System development relies on key methodologies, distinguishing disposable prototypes (for risk assessment) from functional, persistent tracer code (for architectural skeletons). It also details advanced techniques like using domain-specific languages (DSLs) and structured methods for project estimation to ensure project feasibility and system design integrity.
+
+While discussing related topics, readers should note that the following sections provide supplementary context:
+*   Topic 8: The Essence of Good Design
+*   Topic 13: Prototypes and Post-it Notes
+*   Topic 32: Configuration
+
+**Challenges for Domain-Specific Languages:**
+Could the requirements of the current project be expressed using a domain-specific language? Furthermore, is it possible to write a compiler or translator that could generate most of the required code?
+If a programmer decides to adopt mini-languages to program closer to the problem domain, the programmer must accept that some effort will be required to implement those mini-languages. Programmers should also identify ways in which the resulting framework developed for one project can be reused in others.
+
+**Exercises (Potential Answers):**
+*   **Exercise 4:** The goal is to implement a mini-language to control a simple turtle-graphics system. This language uses single-letter commands, some followed by a single number. For example, the input sequence `P 2 # select pen 2` followed by `D # pen down`, `W 2 # draw west 2cm`, `N 1 # then north 1`, `E 2 # then east 2`, `S 1 # then back south`, and `U # pen up` would draw a rectangle. The implementer must design the code to parse this language such that adding new commands remains simple.
+*   **Exercise 5:** In the previous exercise, the implementer created a parser for the drawing language, which constituted an external domain language. The challenge is to implement this parser again, but this time as an internal language. The programmer should write a dedicated function for each command, potentially changing the command names to lowercase and wrapping them within a specific context to provide necessary context.
+*   **Exercise 6:** The task is to design a BNF grammar that can parse a time specification. This grammar must accept several examples, including `4pm`, `7:38pm`, `23:42`, `3:16`, and `3:16am`.
+*   **Exercise 7:** Implement a parser for the BNF grammar designed in the previous exercise using a PEG parser generator in the programmer's language of choice. The output of the parser should be an integer representing the number of minutes past midnight.
+*   **Exercise 8:** Implement the time parser using a scripting language and regular expressions.
+
+**Topic 15: Estimating:**
+The Library of Congress in Washington, D.C., currently holds about 75 terabytes of digital information online. This raises questions such as: How long will it take to send 75 terabytes of information over a 1Gbps network? How much storage will be needed for a million names and addresses? How long does it take to compress 100Mb of text? And how many months will it take to deliver a project?
+At a basic level, these questions are all meaningless because they are missing information. However, the author notes that answering these questions is possible if the programmer is comfortable estimating. By learning to estimate and developing this skill to the point where the programmer has an intuitive feel for magnitudes, the programmer can acquire the apparent magical ability to determine project feasibility. The ability to estimate allows the programmer to know intuitively whether sending a backup over a network connection to S3 is practical, and enables the programmer to determine which subsystems require optimization and which ones can be left alone during coding.
+
+**Tip 23: Estimate to Avoid Surprises:**
+When someone requests an estimate, the programmer must first consider the context to determine if the requester needs a high accuracy or merely a ballpark figure, as all answers are fundamentally estimates. The programmer must also understand that the units used for the time estimate impact the interpretation of the result. The author recommends scaling time estimates by using the following units: Days (for 1–15 days), Weeks (for 3–6 weeks), Months (for 8–20 weeks), and Years (for 20+ weeks).
+
+**Where Estimates Come From:**
+All estimates are based on models of the problem. Before building models, the programmer should ask someone who has completed a similar situation in the past for guidance, noting that although an exact match is unlikely, drawing on others' experiences is often beneficial.
+
+**Steps for Estimating:**
+1. **Understand What is Being Asked:** The first step is for the programmer to build an understanding of the scope of the domain, recognizing that the scope is often implicit in the question. The programmer should make it a habit to think about the scope before attempting to guess; often, the chosen scope will become part of the resulting answer. For example, one might state: “Assuming there are no traffic accidents and there is gas in the car, I should be there in 20 minutes.”
+2. **Build a Model of the System:** From the programmer's understanding of the question being asked, the programmer must construct a rough-and-ready, bare-bones mental model. For instance, if the programmer is estimating response times, the model may involve a server and some kind of arriving traffic. For a project, the model might encompass the organizational steps the organization uses during development, along with a very rough picture of how the system might be implemented.
+Model building is both creative and useful; the process often leads to discoveries of underlying patterns and processes that were not apparent on the surface. The programmer may even want to reexamine the original question by suggesting: “You asked for an estimate to do X. However, it looks like Y, a variant of X, could be done in about half the time, and you lose only one feature.”
+
+3. **Break the Model into Components:** Once the programmer has a model, the programmer can decompose it into components. The programmer must discover the mathematical rules describing how these components interact. Sometimes a component contributes a single value added to the result, while other components supply multiplying factors, and some may be more complex (for example, simulating traffic arrival at a node).
+
+4. **Give Each Parameter a Value:** The programmer must identify each parameter that affects how a component contributes to the overall model. After identifying the parameters, the programmer assigns each one a value, accepting that some initial errors will occur. The trick is for the programmer to determine which parameters have the most impact on the result and concentrate on getting these key parameters right. Parameters whose values are added to a result are generally less significant than those that are multiplied or divided. The programmer should develop a justifiable way of calculating these critical parameters, such as measuring the actual transaction arrival rate of an existing system or finding a similar system for measurement. Often, the programmer will base an estimate on other subestimates, which is where the largest errors are likely to occur.
+
+5. **Calculate the Answers:** Only in the simplest of cases will an estimate yield a single answer. For complex systems, the programmer should run multiple calculations, varying the values of the critical parameters, until the parameters that truly drive the model are identified. A spreadsheet can be helpful for this process. The programmer should then frame the final answer in terms of these parameters; for example, “The response time is roughly three quarters of a second if the system has SSDs and 32GB of memory, and one second with 16GB memory.” The author notes that 
