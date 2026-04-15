@@ -15,20 +15,20 @@ class ModelProfile:
 MODEL_PROFILES: dict[str, ModelProfile] = {
     "qwen3:32b": ModelProfile(
         context_window=32768,
-        max_chunk_tokens=2000,
-        context_budget_tokens=10000,
+        max_chunk_tokens=4000,
+        context_budget_tokens=20000,
         token_factor=1.3,
     ),
     "gemma4:26b": ModelProfile(
         context_window=16384,
-        max_chunk_tokens=2000,
-        context_budget_tokens=10000,
+        max_chunk_tokens=4000,
+        context_budget_tokens=20000,
         token_factor=1.2,
     ),
     "gemma4:latest": ModelProfile(
         context_window=16384,
-        max_chunk_tokens=2000,
-        context_budget_tokens=10000,
+        max_chunk_tokens=4000,
+        context_budget_tokens=20000,
         token_factor=1.2,
     ),
 }
@@ -37,16 +37,16 @@ MODEL_PROFILES: dict[str, ModelProfile] = {
 @dataclass
 class ChunkerConfig:
     split_strategy: str = "sentences"
-    min_chunk_tokens: int = 400
-    max_chunk_tokens: int = 2000
+    min_chunk_tokens: int = 2000
+    max_chunk_tokens: int = 4000
     max_expansion_attempts: int = 5
 
-    summary_aggregation_threshold: int = 2000
+    summary_aggregation_threshold: int = 4000
     summary_count_threshold: int = 8
     min_group_size: int = 2
     max_group_size: int = 5
 
-    context_budget_tokens: int = 10000
+    context_budget_tokens: int = 20000
 
     checkpoint_path: str = "checkpoint.json"
     output_dir: str = "output"

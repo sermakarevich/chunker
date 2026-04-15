@@ -57,7 +57,7 @@ class ContextBuilder:
             return None
         latest_id = max(state.chunks.keys())
         chunk = state.chunks[latest_id]
-        text = chunk.rewritten_text or chunk.summary or chunk.original_text
+        text = chunk.context or chunk.summary or chunk.original_text
         if not text:
             return None
         return ContextItem(
@@ -96,7 +96,7 @@ class ContextBuilder:
         items: list[ContextItem] = []
         for chunk_id in sorted_ids[1:]:
             chunk = state.chunks[chunk_id]
-            text = chunk.rewritten_text or chunk.summary or chunk.original_text
+            text = chunk.context or chunk.summary or chunk.original_text
             if not text:
                 continue
             items.append(

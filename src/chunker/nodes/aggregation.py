@@ -201,7 +201,9 @@ class AggregationSweeper:
             block = SummaryBlock(
                 id=block_id,
                 level=level,
+                context="",
                 summary=summary,
+                filename="",
                 child_ids=group_ids,
                 parent_block_id=None,
                 metadata={},
