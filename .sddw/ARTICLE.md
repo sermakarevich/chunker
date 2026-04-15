@@ -84,6 +84,28 @@ An earlier run on a 115,000-character academic paper about Agentic RAG produced 
 
 Here is what the entry point looks like for the Pragmatic Programmer run. The index shows eight root-level summaries covering the entire book: from the guide's structure and legal framing, through design principles like DRY and Orthogonality, to risk management with Tracers and Prototypes, to professional mastery workflows involving PERT estimation, editor fluency, and architectural patterns like PubSub and the Actor Model. Each summary is dense with specific concepts so an AI model can make an informed navigation decision without reading a single page of the original book.
 
+To make this concrete, here is one branch of the actual tree. Imagine an AI agent asking "how does The Pragmatic Programmer talk about software design principles?"
+
+It starts at index.md and sees eight root summaries. One of them reads: "Sustainable software development requires systemic control against software rot by prioritizing the fixing or containment of minor flaws, while individual developers must manage a knowledge portfolio through continuous investment in skills and diverse learning. Core architectural principles -- Orthogonality, Reversibility, and the DRY principle -- mandate that code must be built to be Easy to Change (ETC)." The agent follows this link.
+
+Inside that L2 block (pragmatic-programming-design-principles), it finds three children:
+
+(L1) software-entropy-and-knowledge-portfolio -- "Software quality demands continuous effort to prevent entropic decay, requiring that broken flaws are immediately addressed or contained."
+
+(L1) developer-pragmatic-principles-communication-design -- "Developers must employ second-order thinking, treating natural language as a programming language and applying principles like DRY and ETC."
+
+(L1) system-design-principles-orthogonality-reversibility -- "Designing systems using Orthogonality, Reversibility, and avoiding irreversible decisions."
+
+The agent picks the third one. Inside it finds three leaf chunks:
+
+(L0) orthogonality-principles -- "Orthogonality, a concept borrowed from geometry, describes a type of independence in computing where changes in one component do not affect others."
+
+(L0) orthogonality-system-design -- "Orthogonality requires composing system modules such that each functionality is independent, meaning a change in one component does not require changes elsewhere."
+
+(L0) reversibility-flexible-architecture -- "Reversibility advises that developers avoid making critical, irreversible decisions, recognizing that the real world constantly changes."
+
+Three navigation steps. Three decisions made by the agent based on informative summaries. From 587,508 characters down to the exact passage about orthogonality in system design. No embeddings. No vector search. No luck required.
+
 
 HOW IT WAS BUILT
 
