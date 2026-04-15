@@ -8,7 +8,7 @@ lint:
     uv run ruff check src/ tests/
     uv run ruff format --check src/ tests/
 
-run input="tests/fixtures/pragm.txt" model="gemma4:latest" output=".sddw/pragm":
+run input="tests/fixtures/the_pragmatic_programmer.txt" model="gemma4:latest" output=".sddw/the_pragmatic_programmer":
     #!/usr/bin/env bash
     set -euo pipefail
     output_dir="{{ output }}"
@@ -20,5 +20,5 @@ run input="tests/fixtures/pragm.txt" model="gemma4:latest" output=".sddw/pragm":
 
 run-fixture model="gemma4:latest":
     # pdftotext .sddw/chunker/test_fixture_agentic_rag.pdf tests/fixtures/agentic_rag_full.txt
-    pdftotext .sddw/pragm.pdf tests/fixtures/pragm.txt
-    just run tests/fixtures/pragm.txt {{ model }}
+    pdftotext .sddw/pragm.pdf tests/fixtures/the_pragmatic_programmer.txt
+    just run tests/fixtures/the_pragmatic_programmer.txt {{ model }}

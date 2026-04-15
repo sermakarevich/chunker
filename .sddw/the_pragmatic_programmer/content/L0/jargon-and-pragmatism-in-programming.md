@@ -1,0 +1,5 @@
+# jargon-and-pragmatism-in-programming
+
+**Parent:** [[content/L1/pragmatic-programmer-metadata|pragmatic-programmer-metadata]] — The Pragmatic Programmer: Your Journey to Mastery
+
+The section "What’s in a Name?" addresses technical jargon, noting that the book includes discussions on both perfectly good English words corrupted to mean technical concepts and 'horrendous made-up words' assigned meanings by computer scientists. When the authors first use each jargon word, they attempt to define it or hint at its meaning. The authors acknowledge that some definitions may have been missed, and that some terms, like 'object' and 'relational database,' are used so commonly that defining them would be boring. Readers encountering an unfamiliar term are advised not to skip it, but rather to take time to look it up, possibly via the web or a computer science textbook. If a reader spots an undefined term, the authors request that the reader email them to complain so they can add a definition to the next edition. The authors also decided to invent their own terms—a form of 

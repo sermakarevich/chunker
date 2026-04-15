@@ -1,0 +1,25 @@
+# command-shell-customization
+
+**Parent:** [[content/L1/professional-proficiency-workflow|professional-proficiency-workflow]] — Professional mastery requires systematic tool development, whether it's physical tools like gauges and chisels or digital tools like command shells and text editors. Methods for complex scheduling include PERT (using optimistic, most likely, and pessimistic estimates for tasks) and iterative development (repeatedly completing small functional slices). To maximize efficiency, programmers should master the command shell by customizing settings like prompts and creating aliases, and achieve editor fluency by learning core key sequences, extending the editor's capabilities via plugins, and building custom extensions.
+
+For programmers who manipulate text files, the command shell serves as a primary workbench. From the shell prompt, a programmer can invoke a full repertoire of tools, using pipes to combine them in ways unforeseen by their original developers. The shell allows users to launch applications, debuggers, browsers, editors, and utilities, and enables searching for files, querying system status, and filtering output. Furthermore, by programming the shell, users can construct complex macro commands for frequently performed activities.
+
+For programmers who are raised on Graphical User Interface (GUI) interfaces and Integrated Development Environments (IDEs), the command shell might initially seem like an extreme position, as many assume that all tasks can be handled equally well through pointing and clicking. However, this assumption is incorrect. While GUI interfaces are excellent, offering increased speed and convenience for simple operations like moving files, reading/writing email, and building/deploying projects, relying exclusively on GUIs causes users to miss the full capabilities of their development environment. Specifically, users will be unable to automate common tasks or combine tools to create customized macro tools.
+
+A key difference lies in the operational models: GUI environments typically offer WYSIWYG (what you see is what you get), while the command shell provides WYSIAYG (what you see is all you get). Moreover, GUI environments are usually restricted to the capabilities intended by their designers. If a programmer needs to extend the model provided by the designer, the programmer often encounters significant limitations, even when advanced functionality is required.
+
+Pragmatic Programmers handle all phases of development—including coding, developing object models, writing documentation, and automating the build process—and the scope of any single tool is typically limited to the tasks it is designed to perform. For example, if a programmer needs to integrate a code preprocessor (for implementing design-by-contract, multi-processing pragmas, or similar functionalities) into an IDE, the programmer cannot do so unless the IDE's designer explicitly provides necessary hooks.
+
+To enhance productivity, developers should gain familiarity with the command shell. For instance, to create a list of all unique package names explicitly imported by Java code, a programmer can run the following command, which stores the output in a file named `list`:
+`grep '^import ' *.java | sed -e's/.*import *//' -e's/;.*$//' | sort -u > list`
+
+Even if the command shell seems daunting initially, investing energy in becoming familiar with the shell leads to rapid productivity gains. Developers should experiment by playing with the command shell to discover its potential.
+
+To customize the workspace, a developer should customize the shell, which often involves changing the terminal program's configuration. Common configuration changes include:
+
+*   **Setting color themes:** Developers can spend many hours testing available themes for their specific shell.
+*   **Configuring a prompt:** The shell prompt, which signals readiness to type a command, can be configured to display virtually any information, such as a shortened current directory name, version control status, and the time, allowing the developer to implement personal preferences for simplicity.
+*   **Using aliases and shell functions:** Developers can simplify repetitive workflows by creating aliases. For example, to create an alias for updating and upgrading a Linux box, a programmer can write: `alias apt-up='sudo apt-get update && sudo apt-get upgrade'`. Similarly, developers can create an alias like `alias rm ='rm -iv'` to ensure that the `rm` command always prompts before executing.
+*   **Command completion:** Most shells automatically complete command and file names when the developer hits tab. Developers can extend this by configuring the shell to recognize the command being entered and offer context-specific completions, sometimes even customizing the completion based on the current directory.
+
+Because developers will spend considerable time within their shell, the shell should be customized to serve as the developer's personal, optimized workspace.

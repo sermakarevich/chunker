@@ -1,0 +1,15 @@
+# design-by-contract-dcb
+
+**Parent:** [[content/L1/professional-software-engineering-practices|professional-software-engineering-practices]] — The synthesis details professional software practices, covering Design by Contract (DBC) for guaranteeing module correctness through defined preconditions, postconditions, and invariants; mandatory resource safety using the 'Finish What You Start' principle (e.g., using scoped blocks for file handling); advanced debugging techniques like the 'chop' binary search for isolating errors; and operational proficiency in the command shell and editors, which requires achieving 'editor fluency' to minimize the distance between thought and execution.
+
+Design by Contract (DBC) is a powerful software design technique that formalizes the rights and responsibilities of software modules to guarantee program correctness. A correct program is defined as one that performs exactly what it claims to do; therefore, the core objective of DBC is documenting and verifying this claim. Every function and method must define its expected state before execution (preconditions) and its guaranteed state upon completion (postconditions). Furthermore, a class must uphold class invariants, which ensure the class maintains a condition that is always true from the perspective of any caller, even if the invariant might temporarily fail during the routine's internal processing.
+
+*   **Preconditions** define what must be true before a routine can be called, acting as the routine's explicit requirements. The calling party bears the responsibility of ensuring that the preconditions are met and that good data is passed to the routine.
+*   **Postconditions** specify the state the routine guarantees upon finishing. If a routine has a postcondition, the routine must conclude, which means infinite loops are disallowed.
+*   **Class invariants** ensure that a class maintains a condition that is always true for any caller. The class cannot grant unrestricted write-access to any data member involved in the invariant.
+
+The contract established between a routine and its potential caller dictates that if the calling party meets the routine’s preconditions, the routine guarantees that all postconditions and invariants will be true upon completion. If either party fails to uphold the terms of this contract, a predefined remedy, such as raising an exception or terminating the program, is invoked. Failure to uphold the contract always constitutes a bug, and thus, developers should not use preconditions for user-input validation.
+
+**Comparison to other techniques:**
+*   **Testing vs. DBC:** While Design by Contract, Test-Driven Development (TDD), property-based testing, and defensive programming all aim for program correctness, DBC offers distinct advantages because it does not require any setup or mocking, and it explicitly defines the parameters for both success and failure for all possible cases, unlike testing, which can only target one specific case at a time.
+*   **TDD vs. DBC:** TDD and other testing approaches only check for correctness at 

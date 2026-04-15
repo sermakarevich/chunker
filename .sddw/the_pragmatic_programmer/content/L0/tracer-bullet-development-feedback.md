@@ -1,0 +1,7 @@
+# tracer-bullet-development-feedback
+
+**Parent:** [[content/L1/software-architecture-risk-management|software-architecture-risk-management]] — The core architectural principles stress achieving flexibility by adhering to concepts like decoupling and abstracting third-party APIs to maintain reversibility. Development risk is managed using two distinct methods: Prototyping, which generates disposable code for low-cost exploration (e.g., whiteboarding a UI), and Tracer Code, which creates a lean, structurally sound framework that guides the overall system integration from the start.
+
+The concept of tracer bullets is a useful and visual metaphor for guiding software development, especially when building something entirely new. Tracer bullets are loaded alongside regular ammunition; when fired, their phosphorus ignites, leaving a pyrotechnic trail from the gun to the object hit. If the tracers are hitting the intended target, the regular bullets are also hitting it. Soldiers use these tracer rounds to refine their aim, providing pragmatic, real-time feedback under actual conditions.
+
+This principle applies to development projects, particularly when the target is unclear or complex. When aiming for a goal in a complex and shifting world—such as developing a system with an unfamiliar architecture, varied algorithms, techniques, languages, or libraries—project requirements can be vague, and the working environment is likely to change over time. The traditional, non-pragmatic response is to 
