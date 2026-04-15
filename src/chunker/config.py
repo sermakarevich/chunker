@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ModelProfile:
-    context_window: int
     max_chunk_tokens: int
     context_budget_tokens: int
     token_factor: float
@@ -14,19 +13,16 @@ class ModelProfile:
 
 MODEL_PROFILES: dict[str, ModelProfile] = {
     "qwen3:32b": ModelProfile(
-        context_window=32768,
         max_chunk_tokens=4000,
         context_budget_tokens=20000,
         token_factor=1.3,
     ),
     "gemma4:26b": ModelProfile(
-        context_window=16384,
         max_chunk_tokens=4000,
         context_budget_tokens=20000,
         token_factor=1.2,
     ),
     "gemma4:latest": ModelProfile(
-        context_window=16384,
         max_chunk_tokens=4000,
         context_budget_tokens=20000,
         token_factor=1.2,

@@ -509,7 +509,7 @@ class TestChunkMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert (
-            "[[content/L2/level-one-group|Groups first three topics together.]]"
+            "[[content/L2/level-one-group|level-one-group]] — Groups first three topics together."
             in content
         )
 
@@ -571,7 +571,7 @@ class TestBlockMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert (
-            "[[content/L3/top-level-overview|Top-level overview of all topics.]]"
+            "[[content/L3/top-level-overview|top-level-overview]] — Top-level overview of all topics."
             in content
         )
 
@@ -610,15 +610,15 @@ class TestBlockMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert (
-            "[[content/L0/first-topic-overview|Covers the first topic in detail.]]"
+            "[[content/L0/first-topic-overview|first-topic-overview]] — Covers the first topic in detail."
             in content
         )
         assert (
-            "[[content/L0/second-topic-analysis|Analyzes the second topic thoroughly.]]"
+            "[[content/L0/second-topic-analysis|second-topic-analysis]] — Analyzes the second topic thoroughly."
             in content
         )
         assert (
-            "[[content/L0/third-topic-summary|Summarizes the third topic findings.]]"
+            "[[content/L0/third-topic-summary|third-topic-summary]] — Summarizes the third topic findings."
             in content
         )
 
@@ -630,7 +630,7 @@ class TestBlockMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "content" / "L3" / "top-level-overview.md").read_text()
         assert (
-            "[[content/L2/level-one-group|Groups first three topics together.]]"
+            "[[content/L2/level-one-group|level-one-group]] — Groups first three topics together."
             in content
         )
 
@@ -665,7 +665,7 @@ class TestIndexMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
         assert (
-            "[[content/L3/top-level-overview|Top-level overview of all topics.]]"
+            "[[content/L3/top-level-overview|top-level-overview]] — Top-level overview of all topics."
             in content
         )
 
@@ -676,8 +676,14 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(flat_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[content/L0/flat-topic-one|First flat topic details.]]" in content
-        assert "[[content/L0/flat-topic-two|Second flat topic details.]]" in content
+        assert (
+            "[[content/L0/flat-topic-one|flat-topic-one]] — First flat topic details."
+            in content
+        )
+        assert (
+            "[[content/L0/flat-topic-two|flat-topic-two]] — Second flat topic details."
+            in content
+        )
 
     def test_mixed_index_links_orphan_chunk_with_summary(
         self,
@@ -686,7 +692,10 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(mixed_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[content/L0/orphan-topic|Ungrouped orphan topic.]]" in content
+        assert (
+            "[[content/L0/orphan-topic|orphan-topic]] — Ungrouped orphan topic."
+            in content
+        )
 
     def test_mixed_index_has_ungrouped_section(
         self,
@@ -704,7 +713,10 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(mixed_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[content/L2/mixed-group|Groups three related topics.]]" in content
+        assert (
+            "[[content/L2/mixed-group|mixed-group]] — Groups three related topics."
+            in content
+        )
 
     def test_multi_root_index_with_summary(
         self,
@@ -713,8 +725,14 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(multi_root_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[content/L2/multi-group-alpha|Alpha group of topics.]]" in content
-        assert "[[content/L2/multi-group-beta|Beta group of topics.]]" in content
+        assert (
+            "[[content/L2/multi-group-alpha|multi-group-alpha]] — Alpha group of topics."
+            in content
+        )
+        assert (
+            "[[content/L2/multi-group-beta|multi-group-beta]] — Beta group of topics."
+            in content
+        )
 
 
 # --- Wiki-link format ---

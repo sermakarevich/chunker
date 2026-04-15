@@ -94,11 +94,12 @@ class MarkdownRenderer:
 
     def _wiki_link(self, node_id: str, state: PipelineState) -> str:
         path = self._node_path(node_id)
+        filename = self._id_to_filename[node_id]
         if node_id in state.blocks:
             summary = state.blocks[node_id].summary
         else:
             summary = state.chunks[node_id].summary
-        return f"[[{path}|{summary}]]"
+        return f"[[{path}|{filename}]] — {summary}"
 
     def _write_chunk(
         self, chunk: Chunk, state: PipelineState, content_dir: Path

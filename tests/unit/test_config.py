@@ -10,14 +10,12 @@ from chunker.config import (
 class TestModelProfile:
     def test_has_required_fields(self):
         profile = MODEL_PROFILES["qwen3:32b"]
-        assert profile.context_window == 32768
         assert profile.max_chunk_tokens == 4000
         assert profile.context_budget_tokens == 20000
         assert profile.token_factor == 1.3
 
     def test_gemma_profile(self):
         profile = MODEL_PROFILES["gemma4:26b"]
-        assert profile.context_window == 16384
         assert profile.max_chunk_tokens == 4000
         assert profile.context_budget_tokens == 20000
         assert profile.token_factor == 1.2
@@ -25,7 +23,7 @@ class TestModelProfile:
     def test_is_json_serializable(self):
         profile = MODEL_PROFILES["qwen3:32b"]
         data = json.loads(json.dumps(profile.__dict__))
-        assert data["context_window"] == 32768
+        assert data["max_chunk_tokens"] == 4000
 
 
 class TestChunkerConfig:
