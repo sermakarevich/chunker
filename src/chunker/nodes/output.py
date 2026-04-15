@@ -21,6 +21,7 @@ class JsonExporter:
                 "original_text": chunk.original_text,
                 "context": chunk.context,
                 "summary": chunk.summary,
+                "filename": chunk.filename,
                 "parent_block_id": chunk.parent_block_id,
                 "forced_split": chunk.forced_split,
             }
@@ -30,7 +31,9 @@ class JsonExporter:
             blocks[block_id] = {
                 "id": block.id,
                 "level": block.level,
+                "context": block.context,
                 "summary": block.summary,
+                "filename": block.filename,
                 "child_ids": block.child_ids,
                 "parent_block_id": block.parent_block_id,
             }
@@ -48,12 +51,6 @@ class JsonExporter:
         path.write_text(json.dumps(data, indent=2))
 
 
-def _child_link(child_id: str, blocks: dict[str, SummaryBlock]) -> str:
-    if child_id in blocks:
-        return f"blocks/{child_id}"
-    return f"chunks/{child_id}"
-
-
 class MarkdownRenderer:
     def render(self, state: PipelineState, output_dir: Path) -> None:
         chunks_dir = output_dir / "chunks"
@@ -61,38 +58,55 @@ class MarkdownRenderer:
         chunks_dir.mkdir(parents=True, exist_ok=True)
         blocks_dir.mkdir(parents=True, exist_ok=True)
 
+        self._used_filenames: dict[str, int] = {}
+        self._id_to_filename: dict[str, str] = {}
+
         for chunk in state.chunks.values():
-            self._write_chunk(chunk, chunks_dir)
+            resolved = self._resolve_filename(chunk.filename)
+            self._id_to_filename[chunk.id] = resolved
+
+        for block in state.blocks.values():
+            resolved = self._resolve_filename(block.filename)
+            self._id_to_filename[block.id] = resolved
+
+        for chunk in state.chunks.values():
+            self._write_chunk(chunk, state, chunks_dir)
 
         for block in state.blocks.values():
             self._write_block(block, state, blocks_dir)
 
         self._write_index(state, output_dir)
 
-    def _write_chunk(self, chunk: Chunk, chunks_dir: Path) -> None:
-        number = chunk.id.split("-")[-1]
-        lines = [f"# Chunk {number}"]
+    def _resolve_filename(self, slug: str) -> str:
+        if slug not in self._used_filenames:
+            self._used_filenames[slug] = 1
+            return slug
+        self._used_filenames[slug] += 1
+        return f"{slug}-{self._used_filenames[slug]}"
+
+    def _wiki_link(self, node_id: str, state: PipelineState) -> str:
+        filename = self._id_to_filename[node_id]
+        if node_id in state.blocks:
+            path = f"blocks/{filename}"
+            summary = state.blocks[node_id].summary
+        else:
+            path = f"chunks/{filename}"
+            summary = state.chunks[node_id].summary
+        return f"[[{path}|{summary}]]"
+
+    def _write_chunk(
+        self, chunk: Chunk, state: PipelineState, chunks_dir: Path
+    ) -> None:
+        filename = self._id_to_filename[chunk.id]
+        lines = [f"# {filename}"]
 
         if chunk.parent_block_id:
             lines.append("")
-            lines.append(f"**Parent:** [[blocks/{chunk.parent_block_id}]]")
+            lines.append(f"**Parent:** {self._wiki_link(chunk.parent_block_id, state)}")
 
-        lines.extend(
-            [
-                "",
-                "## Summary",
-                chunk.summary,
-                "",
-                "## Content",
-                chunk.context,
-                "",
-                "## Original",
-                chunk.original_text,
-                "",
-            ]
-        )
+        lines.extend(["", chunk.context, ""])
 
-        (chunks_dir / f"{chunk.id}.md").write_text("\n".join(lines))
+        (chunks_dir / f"{filename}.md").write_text("\n".join(lines))
 
     def _write_block(
         self,
@@ -100,29 +114,22 @@ class MarkdownRenderer:
         state: PipelineState,
         blocks_dir: Path,
     ) -> None:
-        label = block.id.replace("block-", "")
-        lines = [f"# Summary Block {label}"]
+        filename = self._id_to_filename[block.id]
+        lines = [f"# {filename}"]
 
         if block.parent_block_id:
             lines.append("")
-            lines.append(f"**Parent:** [[blocks/{block.parent_block_id}]]")
+            lines.append(f"**Parent:** {self._wiki_link(block.parent_block_id, state)}")
 
-        lines.extend(
-            [
-                "",
-                "## Summary",
-                block.summary,
-                "",
-                "## Children",
-            ]
-        )
+        lines.extend(["", block.context, ""])
 
-        for child_id in block.child_ids:
-            link = _child_link(child_id, state.blocks)
-            lines.append(f"- [[{link}]]")
+        if block.child_ids:
+            lines.append("## Children")
+            for child_id in block.child_ids:
+                lines.append(f"- {self._wiki_link(child_id, state)}")
+            lines.append("")
 
-        lines.append("")
-        (blocks_dir / f"{block.id}.md").write_text("\n".join(lines))
+        (blocks_dir / f"{filename}.md").write_text("\n".join(lines))
 
     def _write_index(self, state: PipelineState, output_dir: Path) -> None:
         root_block_ids = [
@@ -136,15 +143,15 @@ class MarkdownRenderer:
 
         if root_block_ids:
             for bid in root_block_ids:
-                lines.append(f"- [[blocks/{bid}]]")
+                lines.append(f"- {self._wiki_link(bid, state)}")
         else:
             for cid in orphan_chunk_ids:
-                lines.append(f"- [[chunks/{cid}]]")
+                lines.append(f"- {self._wiki_link(cid, state)}")
 
         if root_block_ids and orphan_chunk_ids:
             lines.extend(["", "## Ungrouped Chunks"])
             for cid in orphan_chunk_ids:
-                lines.append(f"- [[chunks/{cid}]]")
+                lines.append(f"- {self._wiki_link(cid, state)}")
 
         lines.append("")
         (output_dir / "index.md").write_text("\n".join(lines))
