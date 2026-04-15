@@ -75,7 +75,7 @@ class TestContextBuilderPriorityOrder:
         assert len(items) >= 1
         assert items[0].source == "predecessor:chunk-001"
 
-    def test_predecessor_uses_rewritten_text(self, config):
+    def test_predecessor_uses_context(self, config):
         c1 = _make_chunk("chunk-001", context="Rewritten.", summary="Summary.")
         state = _state_with(chunks={"chunk-001": c1})
         builder = ContextBuilder(config)
