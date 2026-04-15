@@ -17,8 +17,9 @@ def _make_chunk(chunk_id: str = "chunk-001", original: str = "Original text.") -
         id=chunk_id,
         source_span=(0, len(original)),
         original_text=original,
-        rewritten_text="",
+        context="",
         summary="",
+        filename="",
         parent_block_id=None,
         forced_split=False,
         metadata={},
@@ -52,7 +53,7 @@ class TestChunkRewriter:
         )
         return llm
 
-    def test_populates_rewritten_text(self, config, mock_llm):
+    def test_populates_context(self, config, mock_llm):
         context_builder = ContextBuilder(config)
         rewriter = ChunkRewriter(mock_llm, context_builder)
         chunk = _make_chunk()
@@ -61,7 +62,7 @@ class TestChunkRewriter:
         result = rewriter.rewrite(chunk, state)
 
         assert (
-            result.rewritten_text
+            result.context
             == "The researchers used a novel approach to solve the problem."
         )
 
@@ -112,8 +113,9 @@ class TestChunkRewriter:
             id="chunk-001",
             source_span=(0, 10),
             original_text="Previous.",
-            rewritten_text="Previous rewritten.",
+            context="Previous rewritten.",
             summary="Prev summary.",
+            filename="",
             parent_block_id=None,
             forced_split=False,
             metadata={},

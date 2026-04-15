@@ -143,7 +143,7 @@ class TestPipelineEndToEnd:
         for i in range(1, len(spans)):
             assert spans[i][0] == spans[i - 1][1]
 
-    def test_chunks_have_rewritten_text_and_summaries(self, checkpoint_path):
+    def test_chunks_have_context_and_summaries(self, checkpoint_path):
         config = _config(checkpoint_path)
         pipeline, mock_llm = _build_pipeline_with_mock_llm(config)
         self._setup_llm_mock(mock_llm)
@@ -151,7 +151,7 @@ class TestPipelineEndToEnd:
         result = pipeline.run(DOCUMENT, "ml-doc")
 
         for chunk in result.state.chunks.values():
-            assert chunk.rewritten_text.startswith("[Rewritten")
+            assert chunk.context.startswith("[Rewritten")
             assert chunk.summary.startswith("Summary of section")
 
     def test_blocks_have_parent_child_links(self, checkpoint_path):
@@ -286,8 +286,9 @@ class TestPipelineResume:
             original_text=DOCUMENT[
                 : DOCUMENT.find("Feature engineering transforms") // 2
             ],
-            rewritten_text="[Rewritten 1]",
+            context="[Rewritten 1]",
             summary="Summary 1.",
+            filename="",
             parent_block_id=None,
             forced_split=False,
             metadata={},
@@ -301,8 +302,9 @@ class TestPipelineResume:
             original_text=DOCUMENT[
                 DOCUMENT.find("Feature engineering transforms") // 2 : boundary
             ],
-            rewritten_text="[Rewritten 2]",
+            context="[Rewritten 2]",
             summary="Summary 2.",
+            filename="",
             parent_block_id=None,
             forced_split=False,
             metadata={},

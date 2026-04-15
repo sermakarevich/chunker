@@ -20,8 +20,9 @@ def _chunk(chunk_id: str, span: tuple[int, int] = (0, 10)) -> Chunk:
         id=chunk_id,
         source_span=span,
         original_text="Original text.",
-        rewritten_text="Rewritten text.",
+        context="Rewritten text.",
         summary="Summary.",
+        filename="",
         parent_block_id=None,
         forced_split=False,
         metadata={},
@@ -43,7 +44,9 @@ class TestProcessingResult:
         state.blocks["block-L1-001"] = SummaryBlock(
             id="block-L1-001",
             level=1,
+            context="",
             summary="Summary",
+            filename="",
             child_ids=["chunk-001"],
             parent_block_id=None,
             metadata={},
@@ -58,7 +61,9 @@ class TestProcessingResult:
         state.blocks["block-L1-001"] = SummaryBlock(
             id="block-L1-001",
             level=1,
+            context="",
             summary="S1",
+            filename="",
             child_ids=["chunk-001"],
             parent_block_id="block-L2-001",
             metadata={},
@@ -66,7 +71,9 @@ class TestProcessingResult:
         state.blocks["block-L2-001"] = SummaryBlock(
             id="block-L2-001",
             level=2,
+            context="",
             summary="S2",
+            filename="",
             child_ids=["block-L1-001"],
             parent_block_id=None,
             metadata={},
@@ -365,7 +372,7 @@ class TestRunCommand:
 
         config = mock_pipeline_cls.call_args[0][0]
         assert config.model == "gemma4:26b"
-        assert config.max_chunk_tokens == 2000  # gemma4:26b profile value
+        assert config.max_chunk_tokens == 4000  # gemma4:26b profile value
 
     @patch("chunker.cli.Pipeline")
     def test_run_places_checkpoint_in_output_dir(self, mock_pipeline_cls, tmp_path):

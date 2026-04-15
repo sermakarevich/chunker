@@ -24,8 +24,9 @@ def sample_state() -> PipelineState:
         id="chunk-001",
         source_span=(0, 12),
         original_text="Hello world.",
-        rewritten_text="Hello world.",
+        context="Hello world.",
         summary="Greeting",
+        filename="",
         parent_block_id=None,
         forced_split=False,
         metadata={"tokens": 3},
@@ -33,7 +34,9 @@ def sample_state() -> PipelineState:
     state.blocks["block-001"] = SummaryBlock(
         id="block-001",
         level=1,
+        context="",
         summary="Block summary",
+        filename="",
         child_ids=["chunk-001"],
         parent_block_id=None,
         metadata={},
@@ -204,7 +207,7 @@ class TestRoundtripEquality:
             assert rest.id == orig.id
             assert rest.source_span == orig.source_span
             assert rest.original_text == orig.original_text
-            assert rest.rewritten_text == orig.rewritten_text
+            assert rest.context == orig.context
             assert rest.summary == orig.summary
             assert rest.parent_block_id == orig.parent_block_id
             assert rest.forced_split == orig.forced_split

@@ -23,8 +23,9 @@ def _chunk(
         id=chunk_id,
         source_span=span,
         original_text=f"Original text of {chunk_id}",
-        rewritten_text=f"Rewritten text of {chunk_id}",
+        context=f"Context of {chunk_id}",
         summary=f"Summary of {chunk_id}",
+        filename="",
         parent_block_id=parent,
         forced_split=forced,
         metadata={},
@@ -40,7 +41,9 @@ def _block(
     return SummaryBlock(
         id=block_id,
         level=level,
+        context="",
         summary=f"Summary of {block_id}",
+        filename="",
         child_ids=children,
         parent_block_id=parent,
         metadata={},
@@ -156,7 +159,7 @@ class TestJsonExporterExport:
         assert chunk["id"] == "chunk-001"
         assert chunk["source_span"] == [0, 100]
         assert chunk["original_text"] == "Original text of chunk-001"
-        assert chunk["rewritten_text"] == "Rewritten text of chunk-001"
+        assert chunk["context"] == "Context of chunk-001"
         assert chunk["summary"] == "Summary of chunk-001"
         assert chunk["parent_block_id"] == "block-L1-001"
         assert chunk["forced_split"] is False
@@ -349,7 +352,7 @@ class TestChunkMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "chunks" / "chunk-001.md").read_text()
         assert "## Content" in content
-        assert "Rewritten text of chunk-001" in content
+        assert "Context of chunk-001" in content
 
     def test_original_section(
         self,

@@ -97,7 +97,7 @@ class TestChunkExtractorHappyPath:
 
         assert state.chunk_counter == 1
 
-    def test_rewrite_and_summary_empty(self, text, config):
+    def test_context_and_summary_empty(self, text, config):
         state = PipelineState.create("doc-001", text)
         llm = self._make_llm()
         llm.check_completeness.return_value = CompletenessResult(
@@ -107,7 +107,7 @@ class TestChunkExtractorHappyPath:
 
         chunk = extractor.extract_next(state)
 
-        assert chunk.rewritten_text == ""
+        assert chunk.context == ""
         assert chunk.summary == ""
 
 
