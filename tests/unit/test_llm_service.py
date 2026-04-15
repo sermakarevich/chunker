@@ -9,7 +9,7 @@ from langchain_core.messages import AIMessage
 
 from chunker.config import ChunkerConfig
 from chunker.llm.schemas import (
-    BlockSummaryResult,
+    BlockContextResult,
     CompletenessResult,
     GroupingResult,
     RewriteResult,
@@ -112,18 +112,20 @@ class TestCheckCompleteness:
 
 
 class TestRewriteChunk:
-    def test_returns_rewrite_and_summary(self):
+    def test_returns_context_summary_filename(self):
         expected = RewriteResult(
-            rewritten_text="The transformer model uses attention.",
+            context="The transformer model uses attention.",
             summary="Explains transformer attention mechanism.",
+            filename="transformer-attention-mechanism",
         )
         model = _mock_model_structured_raw(expected)
         svc = LLMService(model, ChunkerConfig())
 
         result = svc.rewrite_chunk("It uses attention.", "context about transformers")
 
-        assert result.rewritten_text == "The transformer model uses attention."
+        assert result.context == "The transformer model uses attention."
         assert result.summary == "Explains transformer attention mechanism."
+        assert result.filename == "transformer-attention-mechanism"
 
 
 class TestGroupSummaries:
@@ -144,15 +146,27 @@ class TestGroupSummaries:
         assert result.groups == [[0, 1, 2], [3, 4]]
 
 
-class TestSummarizeGroup:
-    def test_returns_summary_string(self):
-        expected = BlockSummaryResult(summary="Combined summary of the group.")
+class TestSynthesizeBlock:
+    def test_returns_block_context_result(self):
+        expected = BlockContextResult(
+            context="Comprehensive synthesis of child contexts covering topics A, B, and C.",
+            summary="Covers topics A, B, and C in detail.",
+            filename="topics-a-b-c-overview",
+        )
         model = _mock_model_structured_raw(expected)
         svc = LLMService(model, ChunkerConfig())
 
-        result = svc.summarize_group(["summary a", "summary b", "summary c"])
+        result = svc.synthesize_block(
+            children_contexts=["context about A", "context about B", "context about C"],
+            metadata_text="parent block context",
+            min_tokens=2000,
+            max_tokens=4000,
+        )
 
-        assert result == "Combined summary of the group."
+        assert isinstance(result, BlockContextResult)
+        assert result.context == "Comprehensive synthesis of child contexts covering topics A, B, and C."
+        assert result.summary == "Covers topics A, B, and C in detail."
+        assert result.filename == "topics-a-b-c-overview"
 
 
 class TestRetryLogic:
