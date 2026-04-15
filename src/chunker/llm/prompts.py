@@ -29,5 +29,12 @@ def grouping_prompt(summaries_text: str, min_size: int, max_size: int) -> str:
     )
 
 
-def summarize_prompt(summaries_text: str) -> str:
-    return _load("summarize").format(summaries_text=summaries_text)
+def synthesize_prompt(
+    children_text: str, metadata_text: str, min_tokens: int, max_tokens: int
+) -> str:
+    return _load("synthesize").format(
+        children_text=children_text,
+        metadata_text=metadata_text,
+        min_tokens=min_tokens,
+        max_tokens=max_tokens,
+    )

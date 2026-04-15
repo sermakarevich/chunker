@@ -48,8 +48,9 @@ class TestChunkRewriter:
     def mock_llm(self):
         llm = MagicMock()
         llm.rewrite_chunk.return_value = RewriteResult(
-            rewritten_text="The researchers used a novel approach to solve the problem.",
+            context="The researchers used a novel approach to solve the problem.",
             summary="Researchers applied a novel problem-solving approach.",
+            filename="novel-problem-solving-approach",
         )
         return llm
 

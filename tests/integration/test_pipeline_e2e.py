@@ -17,6 +17,7 @@ from chunker.checkpoint import Checkpointer
 from chunker.config import ChunkerConfig
 from chunker.context import ContextBuilder
 from chunker.llm.schemas import (
+    BlockContextResult,
     CompletenessResult,
     GroupingResult,
     RewriteResult,
@@ -105,16 +106,19 @@ class TestPipelineEndToEnd:
         def rewrite_side_effect(chunk_text, context_text, *, chunk_id=None):
             chunk_counter["n"] += 1
             return RewriteResult(
-                rewritten_text=f"[Rewritten {chunk_counter['n']}] {chunk_text.strip()}",
+                context=f"[Rewritten {chunk_counter['n']}] {chunk_text.strip()}",
                 summary=f"Summary of section {chunk_counter['n']}.",
+                filename=f"section-{chunk_counter['n']}",
             )
 
         mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
 
         mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
 
-        mock_llm.summarize_group.return_value = (
-            "Overview of ML pipeline: data, features, evaluation, tuning, deployment."
+        mock_llm.synthesize_block.return_value = BlockContextResult(
+            context="Overview of ML pipeline: data, features, evaluation, tuning, deployment.",
+            summary="ML pipeline overview covering data, features, evaluation, tuning, and deployment.",
+            filename="ml-pipeline-overview",
         )
 
     def test_full_pipeline_produces_chunks_and_blocks(self, checkpoint_path):
@@ -215,15 +219,18 @@ class TestPipelineOutput:
         def rewrite_side_effect(chunk_text, context_text, *, chunk_id=None):
             chunk_counter["n"] += 1
             return RewriteResult(
-                rewritten_text=f"[Rewritten {chunk_counter['n']}] {chunk_text.strip()}",
+                context=f"[Rewritten {chunk_counter['n']}] {chunk_text.strip()}",
                 summary=f"Summary of section {chunk_counter['n']}.",
+                filename=f"section-{chunk_counter['n']}",
             )
 
         mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
 
         mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
-        mock_llm.summarize_group.return_value = (
-            "Overview of ML pipeline: data, features, evaluation, tuning, deployment."
+        mock_llm.synthesize_block.return_value = BlockContextResult(
+            context="Overview of ML pipeline: data, features, evaluation, tuning, deployment.",
+            summary="ML pipeline overview covering data, features, evaluation, tuning, and deployment.",
+            filename="ml-pipeline-overview",
         )
 
     def test_full_pipeline_writes_json_output(self, checkpoint_path, tmp_path):
@@ -335,13 +342,18 @@ class TestPipelineResume:
         def rewrite_side_effect(chunk_text, context_text, *, chunk_id=None):
             rewrite_n["n"] += 1
             return RewriteResult(
-                rewritten_text=f"[Rewritten {rewrite_n['n']}]",
+                context=f"[Rewritten {rewrite_n['n']}]",
                 summary=f"Summary {rewrite_n['n']}.",
+                filename=f"section-{rewrite_n['n']}",
             )
 
         mock_llm.rewrite_chunk.side_effect = rewrite_side_effect
         mock_llm.group_summaries.return_value = GroupingResult(groups=[[0, 1], [2, 3]])
-        mock_llm.summarize_group.return_value = "Group summary."
+        mock_llm.synthesize_block.return_value = BlockContextResult(
+            context="Synthesized group context.",
+            summary="Group summary.",
+            filename="group-summary",
+        )
 
         result = pipeline.resume()
 

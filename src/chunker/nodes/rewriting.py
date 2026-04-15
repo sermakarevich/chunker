@@ -19,6 +19,7 @@ class ChunkRewriter:
         result = self._llm.rewrite_chunk(
             chunk.original_text, context_text, chunk_id=chunk.id
         )
-        chunk.context = result.rewritten_text
+        chunk.context = result.context
         chunk.summary = result.summary
+        chunk.filename = result.filename
         return chunk

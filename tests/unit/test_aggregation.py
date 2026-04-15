@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 
 from chunker.config import ChunkerConfig
-from chunker.llm.schemas import GroupingResult
+from chunker.llm.schemas import BlockContextResult, GroupingResult
 from chunker.llm.service import LLMService
 from chunker.models import Chunk
 from chunker.nodes.aggregation import (
@@ -62,7 +62,11 @@ def _mock_llm(groups=None, summary="Group summary."):
     svc = MagicMock(spec=LLMService)
     if groups is not None:
         svc.group_summaries.return_value = GroupingResult(groups=groups)
-    svc.summarize_group.return_value = summary
+    svc.synthesize_block.return_value = BlockContextResult(
+        context=f"Synthesized context: {summary}",
+        summary=summary,
+        filename="block-summary",
+    )
     return svc
 
 
@@ -199,6 +203,8 @@ class TestAggregationSweeperBlockCreation:
             assert block.level == 0
             assert len(block.child_ids) == 2
             assert block.summary == "Block summary."
+            assert block.context == "Synthesized context: Block summary."
+            assert block.filename == "block-summary"
 
     def test_children_parent_block_id_updated(self):
         state = _state_with_pending(4)
@@ -283,7 +289,11 @@ class TestAggregationSweeperRecursion:
         l1_groups = GroupingResult(groups=[[0, 1]])
         llm = _mock_llm()
         llm.group_summaries.side_effect = [l0_groups, l1_groups]
-        llm.summarize_group.return_value = "Level summary."
+        llm.synthesize_block.return_value = BlockContextResult(
+            context="Synthesized context: Level summary.",
+            summary="Level summary.",
+            filename="level-summary",
+        )
         sweeper = AggregationSweeper(llm, config)
 
         sweeper.sweep(state)

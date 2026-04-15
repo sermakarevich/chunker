@@ -7,6 +7,12 @@ Rules:
 - Do NOT add information that is not in the original chunk or context
 - Preserve the technical accuracy and level of detail
 
+Information persistence:
+- You MUST preserve ALL specific facts, numbers, names, dates, and relationships from the original chunk
+- Do NOT reduce specific facts to vague generalizations (e.g., "several metrics improved" instead of "accuracy rose from 82% to 94%")
+- Do NOT omit details even if they seem minor — every concrete fact matters
+- The rewritten context should be at least as information-dense as the original
+
 ## Context from earlier processing
 {context_text}
 
@@ -14,5 +20,6 @@ Rules:
 {chunk_text}
 
 Respond with JSON:
-- "rewritten_text": the self-contained rewrite of the chunk
-- "summary": a 1-3 sentence summary capturing the key point of this chunk
+- "context": the self-contained rewrite of the chunk, with all references resolved and all facts preserved
+- "summary": a 1-2 sentence summary containing specific facts, not vague generalizations
+- "filename": a short descriptive slug for this chunk's content (e.g., "attention-mechanism-overview"), lowercase with hyphens, no extension

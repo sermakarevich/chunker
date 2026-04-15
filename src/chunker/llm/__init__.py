@@ -1,5 +1,5 @@
 from chunker.llm.schemas import (
-    BlockSummaryResult,
+    BlockContextResult,
     CompletenessResult,
     GroupingResult,
     RewriteResult,
@@ -7,7 +7,7 @@ from chunker.llm.schemas import (
 from chunker.llm.service import LLMService, LLMValidationError
 
 __all__ = [
-    "BlockSummaryResult",
+    "BlockContextResult",
     "CompletenessResult",
     "GroupingResult",
     "LLMService",

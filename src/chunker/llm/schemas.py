@@ -9,13 +9,16 @@ class CompletenessResult(BaseModel):
 
 
 class RewriteResult(BaseModel):
-    rewritten_text: str
+    context: str
     summary: str
+    filename: str
 
 
 class GroupingResult(BaseModel):
     groups: list[list[int]]
 
 
-class BlockSummaryResult(BaseModel):
+class BlockContextResult(BaseModel):
+    context: str
     summary: str
+    filename: str

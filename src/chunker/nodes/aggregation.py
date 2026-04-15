@@ -126,6 +126,13 @@ class AggregationSweeper:
             return state.blocks[item_id].summary
         return ""
 
+    def _get_context(self, state: PipelineState, item_id: str) -> str:
+        if item_id in state.chunks:
+            return state.chunks[item_id].context
+        if item_id in state.blocks:
+            return state.blocks[item_id].context
+        return ""
+
     def _resolve_groups(
         self,
         state: PipelineState,
@@ -193,17 +200,23 @@ class AggregationSweeper:
             state.block_counters[level] = state.block_counters.get(level, 0) + 1
             block_id = f"block-L{level}-{state.block_counters[level]:03d}"
 
-            child_summaries = [
-                self._get_summary(state, child_id) for child_id in group_ids
+            child_contexts = [
+                self._get_context(state, child_id) for child_id in group_ids
             ]
-            summary = self._llm.summarize_group(child_summaries, block_id=block_id)
+            result = self._llm.synthesize_block(
+                children_contexts=child_contexts,
+                metadata_text="",
+                min_tokens=self._config.min_chunk_tokens,
+                max_tokens=self._config.max_chunk_tokens,
+                block_id=block_id,
+            )
 
             block = SummaryBlock(
                 id=block_id,
                 level=level,
-                context="",
-                summary=summary,
-                filename="",
+                context=result.context,
+                summary=result.summary,
+                filename=result.filename,
                 child_ids=group_ids,
                 parent_block_id=None,
                 metadata={},

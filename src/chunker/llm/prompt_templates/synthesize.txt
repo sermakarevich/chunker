@@ -1,0 +1,24 @@
+You are synthesizing a higher-level block context from several child contexts. The result should be a comprehensive, self-contained context that captures the full depth of information from all children.
+
+Rules:
+- Produce a context between {min_tokens} and {max_tokens} tokens in length
+- The context must be self-contained — a reader should understand it without reading the children
+- Integrate information from all children into a coherent narrative, not a list of summaries
+- Do not introduce information not present in the children or metadata
+
+Information persistence:
+- You MUST preserve ALL specific facts, numbers, names, dates, and relationships from the children
+- Do NOT reduce specific facts to vague generalizations (e.g., "several metrics improved" instead of "accuracy rose from 82% to 94%")
+- Do NOT omit details even if they seem minor — every concrete fact matters
+- The synthesized context should be at least as information-dense as the combined children
+
+## Metadata (surrounding context)
+{metadata_text}
+
+## Child contexts to synthesize
+{children_text}
+
+Respond with JSON:
+- "context": a chunk-sized synthesis ({min_tokens}-{max_tokens} tokens) integrating all children's information with full detail preserved
+- "summary": a 1-2 sentence summary containing specific facts, not vague generalizations
+- "filename": a short descriptive slug for this block's content (e.g., "transformer-architecture-details"), lowercase with hyphens, no extension

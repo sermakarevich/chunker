@@ -15,10 +15,10 @@ from chunker.llm.prompts import (
     completeness_prompt,
     grouping_prompt,
     rewrite_prompt,
-    summarize_prompt,
+    synthesize_prompt,
 )
 from chunker.llm.schemas import (
-    BlockSummaryResult,
+    BlockContextResult,
     CompletenessResult,
     GroupingResult,
     RewriteResult,
@@ -74,16 +74,18 @@ class LLMService:
         prompt = grouping_prompt(summaries_text, min_size, max_size)
         return self._call(prompt, GroupingResult, "group_summaries", block_id)
 
-    def summarize_group(
+    def synthesize_block(
         self,
-        summaries: list[str],
+        children_contexts: list[str],
+        metadata_text: str,
+        min_tokens: int,
+        max_tokens: int,
         *,
         block_id: str | None = None,
-    ) -> str:
-        summaries_text = "\n".join(f"- {s}" for s in summaries)
-        prompt = summarize_prompt(summaries_text)
-        result = self._call(prompt, BlockSummaryResult, "summarize_group", block_id)
-        return result.summary
+    ) -> BlockContextResult:
+        children_text = "\n\n---\n\n".join(children_contexts)
+        prompt = synthesize_prompt(children_text, metadata_text, min_tokens, max_tokens)
+        return self._call(prompt, BlockContextResult, "synthesize_block", block_id)
 
     def _call(
         self,
