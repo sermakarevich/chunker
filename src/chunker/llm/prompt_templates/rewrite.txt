@@ -12,6 +12,7 @@ Information persistence:
 - Do NOT reduce specific facts to vague generalizations (e.g., "several metrics improved" instead of "accuracy rose from 82% to 94%")
 - Do NOT omit details even if they seem minor — every concrete fact matters
 - The rewritten context should be at least as information-dense as the original
+- Remove academic citation markers like [7], [10, 11], [13] — they are noise without a bibliography
 
 ## Context from earlier processing
 {context_text}

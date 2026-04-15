@@ -260,14 +260,19 @@ class TestPipelineOutput:
         pipeline.run(DOCUMENT, "ml-doc")
 
         assert (output_dir / "index.md").exists()
-        assert (output_dir / "chunks").is_dir()
-        assert (output_dir / "blocks").is_dir()
+        assert (output_dir / "content").is_dir()
+        assert (output_dir / "content" / "L0").is_dir()
 
-        chunk_files = list((output_dir / "chunks").iterdir())
+        chunk_files = list((output_dir / "content" / "L0").iterdir())
         assert len(chunk_files) == 4
 
-        block_files = list((output_dir / "blocks").iterdir())
-        assert len(block_files) >= 1
+        higher_level_files = [
+            f
+            for level_dir in (output_dir / "content").iterdir()
+            if level_dir.name != "L0"
+            for f in level_dir.iterdir()
+        ]
+        assert len(higher_level_files) >= 1
 
 
 class TestPipelineResume:

@@ -464,8 +464,8 @@ class TestPipelineOutput:
 
         pipeline.run(text, "doc-1")
 
-        assert (tmp_path / "chunks").is_dir()
-        chunk_files = list((tmp_path / "chunks").iterdir())
+        assert (tmp_path / "content" / "L0").is_dir()
+        chunk_files = list((tmp_path / "content" / "L0").iterdir())
         assert len(chunk_files) == 1
 
     def test_resume_creates_output(self, tmp_path):

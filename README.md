@@ -66,22 +66,25 @@ Chunker produces two output formats:
 
 ### Linked Markdown
 
-A directory of `.md` files named by content (not by ID) with wiki-style links between them:
+A directory of `.md` files named by content (not by ID) and organized by hierarchy level:
 
 ```
 output/
-  index.md                                  # Entry point, links to root blocks
-  blocks/
-    transformer-architecture-deep-dive.md   # High-level synthesis, links to children
-    attention-mechanisms-and-scoring.md      # Mid-level synthesis, links to chunks
-    ...
-  chunks/
-    multi-head-attention-overview.md        # Leaf node: self-sufficient context
-    scaled-dot-product-scoring.md
-    ...
+  index.md                                  # Entry point, links to top-level nodes
+  content/
+    L0/                                     # Leaf nodes (original chunks)
+      multi-head-attention-overview.md
+      scaled-dot-product-scoring.md
+      ...
+    L1/                                     # First aggregation level
+      attention-mechanisms-and-scoring.md
+      ...
+    L2/                                     # Higher aggregation levels
+      transformer-architecture-deep-dive.md
+      ...
 ```
 
-Every file contains a self-sufficient context body. Blocks link down to their children and up to their parent. Wiki-links display the target node's summary as the link label (e.g., `[[chunks/multi-head-attention-overview|Describes the multi-head attention mechanism with parallel attention heads and scaled dot-product scoring.]]`), so you can decide which link to follow based on factual content, not vague labels.
+Every file contains a self-sufficient context body. All nodes link up to their parent and top-level nodes link back to the index. Wiki-links display the target node's summary as the link label (e.g., `[[content/L0/multi-head-attention-overview|Describes the multi-head attention mechanism with parallel attention heads and scaled dot-product scoring.]]`), so you can decide which link to follow based on factual content, not vague labels.
 
 This format works directly in Obsidian, any wiki-link-aware viewer, or as a knowledge base that an AI model can navigate by following links.
 

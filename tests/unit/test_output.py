@@ -356,21 +356,23 @@ class TestJsonExporterWrite:
 
 
 class TestMarkdownRendererStructure:
-    def test_creates_chunks_dir(
+    def test_creates_content_dir(
         self,
         hierarchy_state: PipelineState,
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        assert (tmp_path / "chunks").is_dir()
+        assert (tmp_path / "content").is_dir()
 
-    def test_creates_blocks_dir(
+    def test_creates_level_dirs(
         self,
         hierarchy_state: PipelineState,
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        assert (tmp_path / "blocks").is_dir()
+        assert (tmp_path / "content" / "L0").is_dir()
+        assert (tmp_path / "content" / "L2").is_dir()
+        assert (tmp_path / "content" / "L3").is_dir()
 
     def test_creates_index(
         self,
@@ -386,7 +388,7 @@ class TestMarkdownRendererStructure:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        chunk_files = list((tmp_path / "chunks").glob("*.md"))
+        chunk_files = list((tmp_path / "content" / "L0").glob("*.md"))
         assert len(chunk_files) == 3
 
     def test_one_file_per_block(
@@ -395,8 +397,9 @@ class TestMarkdownRendererStructure:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        block_files = list((tmp_path / "blocks").glob("*.md"))
-        assert len(block_files) == 2
+        l2_files = list((tmp_path / "content" / "L2").glob("*.md"))
+        l3_files = list((tmp_path / "content" / "L3").glob("*.md"))
+        assert len(l2_files) + len(l3_files) == 2
 
     def test_chunk_filename_uses_slug(
         self,
@@ -404,9 +407,9 @@ class TestMarkdownRendererStructure:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        assert (tmp_path / "chunks" / "first-topic-overview.md").is_file()
-        assert (tmp_path / "chunks" / "second-topic-analysis.md").is_file()
-        assert (tmp_path / "chunks" / "third-topic-summary.md").is_file()
+        assert (tmp_path / "content" / "L0" / "first-topic-overview.md").is_file()
+        assert (tmp_path / "content" / "L0" / "second-topic-analysis.md").is_file()
+        assert (tmp_path / "content" / "L0" / "third-topic-summary.md").is_file()
 
     def test_block_filename_uses_slug(
         self,
@@ -414,8 +417,8 @@ class TestMarkdownRendererStructure:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        assert (tmp_path / "blocks" / "level-one-group.md").is_file()
-        assert (tmp_path / "blocks" / "top-level-overview.md").is_file()
+        assert (tmp_path / "content" / "L2" / "level-one-group.md").is_file()
+        assert (tmp_path / "content" / "L3" / "top-level-overview.md").is_file()
 
     def test_no_id_based_filenames(
         self,
@@ -451,7 +454,7 @@ class TestFilenameDedup:
             ),
         }
         MarkdownRenderer().render(state, tmp_path)
-        chunk_files = sorted(f.name for f in (tmp_path / "chunks").glob("*.md"))
+        chunk_files = sorted(f.name for f in (tmp_path / "content" / "L0").glob("*.md"))
         assert "same-topic.md" in chunk_files
         assert "same-topic-2.md" in chunk_files
 
@@ -479,7 +482,7 @@ class TestFilenameDedup:
             ),
         }
         MarkdownRenderer().render(state, tmp_path)
-        chunk_files = sorted(f.name for f in (tmp_path / "chunks").glob("*.md"))
+        chunk_files = sorted(f.name for f in (tmp_path / "content" / "L0").glob("*.md"))
         assert "repeated.md" in chunk_files
         assert "repeated-2.md" in chunk_files
         assert "repeated-3.md" in chunk_files
@@ -495,7 +498,7 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert content.startswith("# ")
 
     def test_parent_link_uses_filename(
@@ -504,9 +507,10 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert (
-            "[[blocks/level-one-group|Groups first three topics together.]]" in content
+            "[[content/L2/level-one-group|Groups first three topics together.]]"
+            in content
         )
 
     def test_context_body(
@@ -515,7 +519,7 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert "Context of chunk-001" in content
 
     def test_no_summary_section(
@@ -524,7 +528,7 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert "## Summary" not in content
 
     def test_no_original_section(
@@ -533,7 +537,7 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert "## Original" not in content
 
     def test_no_content_header(
@@ -542,7 +546,7 @@ class TestChunkMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "chunks" / "first-topic-overview.md").read_text()
+        content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert "## Content" not in content
 
 
@@ -556,7 +560,7 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "level-one-group.md").read_text()
+        content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert content.startswith("# ")
 
     def test_parent_link_uses_filename(
@@ -565,19 +569,20 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "level-one-group.md").read_text()
+        content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert (
-            "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+            "[[content/L3/top-level-overview|Top-level overview of all topics.]]"
+            in content
         )
 
-    def test_root_block_no_parent_link(
+    def test_root_block_links_to_index(
         self,
         hierarchy_state: PipelineState,
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "top-level-overview.md").read_text()
-        assert "**Parent:**" not in content
+        content = (tmp_path / "content" / "L3" / "top-level-overview.md").read_text()
+        assert "**Parent:** [[index]]" in content
 
     def test_context_body(
         self,
@@ -585,7 +590,7 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "level-one-group.md").read_text()
+        content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert "Context of block-L1-001" in content
 
     def test_no_summary_section(
@@ -594,7 +599,7 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "level-one-group.md").read_text()
+        content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert "## Summary" not in content
 
     def test_children_links_use_filename_and_summary(
@@ -603,17 +608,17 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "level-one-group.md").read_text()
+        content = (tmp_path / "content" / "L2" / "level-one-group.md").read_text()
         assert (
-            "[[chunks/first-topic-overview|Covers the first topic in detail.]]"
+            "[[content/L0/first-topic-overview|Covers the first topic in detail.]]"
             in content
         )
         assert (
-            "[[chunks/second-topic-analysis|Analyzes the second topic thoroughly.]]"
+            "[[content/L0/second-topic-analysis|Analyzes the second topic thoroughly.]]"
             in content
         )
         assert (
-            "[[chunks/third-topic-summary|Summarizes the third topic findings.]]"
+            "[[content/L0/third-topic-summary|Summarizes the third topic findings.]]"
             in content
         )
 
@@ -623,9 +628,10 @@ class TestBlockMarkdown:
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
-        content = (tmp_path / "blocks" / "top-level-overview.md").read_text()
+        content = (tmp_path / "content" / "L3" / "top-level-overview.md").read_text()
         assert (
-            "[[blocks/level-one-group|Groups first three topics together.]]" in content
+            "[[content/L2/level-one-group|Groups first three topics together.]]"
+            in content
         )
 
 
@@ -642,6 +648,15 @@ class TestIndexMarkdown:
         content = (tmp_path / "index.md").read_text()
         assert "# doc-hier" in content
 
+    def test_source_reference(
+        self,
+        hierarchy_state: PipelineState,
+        tmp_path: Path,
+    ) -> None:
+        MarkdownRenderer().render(hierarchy_state, tmp_path)
+        content = (tmp_path / "index.md").read_text()
+        assert "**Source:** `doc-hier`" in content
+
     def test_links_to_root_blocks_with_summary(
         self,
         hierarchy_state: PipelineState,
@@ -650,7 +665,8 @@ class TestIndexMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
         assert (
-            "[[blocks/top-level-overview|Top-level overview of all topics.]]" in content
+            "[[content/L3/top-level-overview|Top-level overview of all topics.]]"
+            in content
         )
 
     def test_flat_index_links_to_chunks_with_summary(
@@ -660,8 +676,8 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(flat_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[chunks/flat-topic-one|First flat topic details.]]" in content
-        assert "[[chunks/flat-topic-two|Second flat topic details.]]" in content
+        assert "[[content/L0/flat-topic-one|First flat topic details.]]" in content
+        assert "[[content/L0/flat-topic-two|Second flat topic details.]]" in content
 
     def test_mixed_index_links_orphan_chunk_with_summary(
         self,
@@ -670,7 +686,7 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(mixed_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[chunks/orphan-topic|Ungrouped orphan topic.]]" in content
+        assert "[[content/L0/orphan-topic|Ungrouped orphan topic.]]" in content
 
     def test_mixed_index_has_ungrouped_section(
         self,
@@ -688,7 +704,7 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(mixed_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[blocks/mixed-group|Groups three related topics.]]" in content
+        assert "[[content/L2/mixed-group|Groups three related topics.]]" in content
 
     def test_multi_root_index_with_summary(
         self,
@@ -697,8 +713,8 @@ class TestIndexMarkdown:
     ) -> None:
         MarkdownRenderer().render(multi_root_state, tmp_path)
         content = (tmp_path / "index.md").read_text()
-        assert "[[blocks/multi-group-alpha|Alpha group of topics.]]" in content
-        assert "[[blocks/multi-group-beta|Beta group of topics.]]" in content
+        assert "[[content/L2/multi-group-alpha|Alpha group of topics.]]" in content
+        assert "[[content/L2/multi-group-beta|Beta group of topics.]]" in content
 
 
 # --- Wiki-link format ---
@@ -731,6 +747,9 @@ class TestWikiLinkFormat:
                 close_pos = content.find("]]", open_pos)
                 assert close_pos != -1
                 link_content = content[open_pos + 2 : close_pos]
+                if link_content == "index":
+                    start = close_pos + 2
+                    continue
                 assert "|" in link_content, (
                     f"Wiki-link without summary label: [[{link_content}]] in {md_file.name}"
                 )
@@ -752,24 +771,26 @@ class TestWikiLinkFormat:
 
 
 class TestFlatOutput:
-    def test_no_blocks_dir_content(
+    def test_no_higher_level_content(
         self,
         flat_state: PipelineState,
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(flat_state, tmp_path)
-        blocks_dir = tmp_path / "blocks"
-        if blocks_dir.exists():
-            assert list(blocks_dir.glob("*.md")) == []
+        l0 = tmp_path / "content" / "L0"
+        assert l0.is_dir()
+        assert len(list(l0.glob("*.md"))) == 2
+        content_dirs = list((tmp_path / "content").iterdir())
+        assert len(content_dirs) == 1
 
-    def test_chunk_no_parent_link(
+    def test_orphan_chunk_links_to_index(
         self,
         flat_state: PipelineState,
         tmp_path: Path,
     ) -> None:
         MarkdownRenderer().render(flat_state, tmp_path)
-        content = (tmp_path / "chunks" / "flat-topic-one.md").read_text()
-        assert "**Parent:**" not in content
+        content = (tmp_path / "content" / "L0" / "flat-topic-one.md").read_text()
+        assert "**Parent:** [[index]]" in content
 
 
 # --- Full traversal ---
@@ -777,7 +798,7 @@ class TestFlatOutput:
 
 class TestFullTraversal:
     def _collect_links(self, content: str) -> list[str]:
-        """Extract all [[path|label]] links from markdown content, return paths."""
+        """Extract all [[path|label]] or [[path]] links, return paths."""
         links = []
         start = 0
         while True:
@@ -815,6 +836,12 @@ class TestFullTraversal:
 
         return visited
 
+    def _node_path(self, node_id: str, state: PipelineState) -> str:
+        if node_id in state.chunks:
+            return f"content/L0/{state.chunks[node_id].filename}"
+        block = state.blocks[node_id]
+        return f"content/L{block.level + 1}/{block.filename}"
+
     def test_all_chunks_reachable_hierarchy(
         self,
         hierarchy_state: PipelineState,
@@ -823,7 +850,7 @@ class TestFullTraversal:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         visited = self._traverse(tmp_path)
         for chunk in hierarchy_state.chunks.values():
-            assert f"chunks/{chunk.filename}" in visited
+            assert f"content/L0/{chunk.filename}" in visited
 
     def test_all_blocks_reachable_hierarchy(
         self,
@@ -833,7 +860,8 @@ class TestFullTraversal:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         visited = self._traverse(tmp_path)
         for block in hierarchy_state.blocks.values():
-            assert f"blocks/{block.filename}" in visited
+            expected = f"content/L{block.level + 1}/{block.filename}"
+            assert expected in visited
 
     def test_all_chunks_reachable_flat(
         self,
@@ -843,7 +871,7 @@ class TestFullTraversal:
         MarkdownRenderer().render(flat_state, tmp_path)
         visited = self._traverse(tmp_path)
         for chunk in flat_state.chunks.values():
-            assert f"chunks/{chunk.filename}" in visited
+            assert f"content/L0/{chunk.filename}" in visited
 
     def test_all_chunks_reachable_mixed(
         self,
@@ -853,7 +881,7 @@ class TestFullTraversal:
         MarkdownRenderer().render(mixed_state, tmp_path)
         visited = self._traverse(tmp_path)
         for chunk in mixed_state.chunks.values():
-            assert f"chunks/{chunk.filename}" in visited
+            assert f"content/L0/{chunk.filename}" in visited
 
     def test_all_chunks_reachable_multi_root(
         self,
@@ -863,4 +891,4 @@ class TestFullTraversal:
         MarkdownRenderer().render(multi_root_state, tmp_path)
         visited = self._traverse(tmp_path)
         for chunk in multi_root_state.chunks.values():
-            assert f"chunks/{chunk.filename}" in visited
+            assert f"content/L0/{chunk.filename}" in visited
