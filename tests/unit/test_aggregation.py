@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 from chunker.config import ChunkerConfig
 from chunker.llm.schemas import BlockContextResult, GroupingResult
 from chunker.llm.service import LLMService
-from chunker.models import Chunk
+from chunker.models import Chunk, SummaryBlock
 from chunker.nodes.aggregation import (
     AggregationSweeper,
     GroupValidator,
@@ -328,3 +328,93 @@ class TestAggregationSweeperRecursion:
 
         assert llm.group_summaries.call_count == 1
         assert len(state.blocks) == 1
+
+
+# ── AggregationSweeper: _build_metadata ───────────────────────
+
+
+def _block(block_id: str, level: int, context: str = "Block context") -> SummaryBlock:
+    return SummaryBlock(
+        id=block_id,
+        level=level,
+        context=context,
+        summary="Block summary.",
+        filename="block-file",
+        child_ids=[],
+        parent_block_id=None,
+        metadata={},
+    )
+
+
+class TestBuildMetadata:
+    def _sweeper(self) -> AggregationSweeper:
+        return AggregationSweeper(_mock_llm(), _config())
+
+    def test_predecessor_context_included(self):
+        """First group has no predecessor; second group gets predecessor context."""
+        state = _state_with_pending(4)
+        state.chunks["chunk-001"].context = "Context of chunk 1"
+        state.chunks["chunk-002"].context = "Context of chunk 2"
+        sweeper = self._sweeper()
+
+        # Group ["chunk-003", "chunk-004"] — predecessor is chunk-002
+        meta = sweeper._build_metadata(state, ["chunk-003", "chunk-004"], level=0)
+        assert "Context of chunk 2" in meta
+
+    def test_no_predecessor_for_first_group(self):
+        """First item in pending list has no predecessor — metadata omits it."""
+        state = _state_with_pending(4)
+        sweeper = self._sweeper()
+
+        meta = sweeper._build_metadata(state, ["chunk-001", "chunk-002"], level=0)
+        assert "Previous context" not in meta
+
+    def test_higher_level_block_contexts_included(self):
+        """Metadata includes context from blocks at levels above current."""
+        state = _state_with_pending(4)
+        state.blocks["block-L1-001"] = _block("block-L1-001", level=1, context="L1 overview")
+        sweeper = self._sweeper()
+
+        meta = sweeper._build_metadata(state, ["chunk-001", "chunk-002"], level=0)
+        assert "L1 overview" in meta
+
+    def test_no_higher_level_blocks_yields_empty(self):
+        """When no predecessor and no higher-level blocks, metadata is empty."""
+        state = _state_with_pending(4)
+        sweeper = self._sweeper()
+
+        meta = sweeper._build_metadata(state, ["chunk-001", "chunk-002"], level=0)
+        assert meta == ""
+
+    def test_predecessor_and_higher_level_combined(self):
+        """Metadata assembles both predecessor context and higher-level blocks."""
+        state = _state_with_pending(4)
+        state.chunks["chunk-002"].context = "Prev chunk context"
+        state.blocks["block-L2-001"] = _block("block-L2-001", level=2, context="L2 context")
+        sweeper = self._sweeper()
+
+        meta = sweeper._build_metadata(state, ["chunk-003", "chunk-004"], level=0)
+        assert "Prev chunk context" in meta
+        assert "L2 context" in meta
+
+
+# ── AggregationSweeper: metadata wiring ───────────────────────
+
+
+class TestMetadataWiring:
+    def test_synthesize_block_receives_metadata(self):
+        """_create_blocks passes _build_metadata output to synthesize_block."""
+        state = _state_with_pending(4)
+        state.chunks["chunk-002"].context = "Predecessor ctx"
+        llm = _mock_llm(groups=[[0, 1], [2, 3]])
+        sweeper = AggregationSweeper(llm, _config())
+
+        sweeper.sweep(state)
+
+        # Second group's call should have non-empty metadata
+        calls = llm.synthesize_block.call_args_list
+        assert len(calls) == 2
+        # First group (chunk-001, chunk-002): no predecessor
+        assert calls[0].kwargs["metadata_text"] == ""
+        # Second group (chunk-003, chunk-004): predecessor is chunk-002
+        assert "Predecessor ctx" in calls[1].kwargs["metadata_text"]

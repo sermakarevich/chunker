@@ -133,6 +133,36 @@ class AggregationSweeper:
             return state.blocks[item_id].context
         return ""
 
+    def _build_metadata(
+        self,
+        state: PipelineState,
+        group_ids: list[str],
+        level: int,
+    ) -> str:
+        parts: list[str] = []
+
+        # Previous item's context (item immediately before this group)
+        pending = state.pending_summaries.get(level, [])
+        first_id = group_ids[0]
+        try:
+            idx = pending.index(first_id)
+        except ValueError:
+            idx = -1
+        if idx > 0:
+            prev_context = self._get_context(state, pending[idx - 1])
+            if prev_context:
+                parts.append(f"Previous context:\n{prev_context}")
+
+        # Latest block context at each level above current
+        higher_blocks: dict[int, str] = {}
+        for block in state.blocks.values():
+            if block.level > level:
+                higher_blocks[block.level] = block.context
+        for lvl in sorted(higher_blocks):
+            parts.append(f"Level {lvl} context:\n{higher_blocks[lvl]}")
+
+        return "\n\n".join(parts)
+
     def _resolve_groups(
         self,
         state: PipelineState,
@@ -203,9 +233,10 @@ class AggregationSweeper:
             child_contexts = [
                 self._get_context(state, child_id) for child_id in group_ids
             ]
+            metadata_text = self._build_metadata(state, group_ids, level)
             result = self._llm.synthesize_block(
                 children_contexts=child_contexts,
-                metadata_text="",
+                metadata_text=metadata_text,
                 min_tokens=self._config.min_chunk_tokens,
                 max_tokens=self._config.max_chunk_tokens,
                 block_id=block_id,
