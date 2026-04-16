@@ -1,0 +1,9 @@
+# stream-laziness-and-foldright
+
+**Parent:** [[content/L1/scala-stream-laziness-advanced-concepts|scala-stream-laziness-advanced-concepts]] — Stream processing relies on laziness to compute elements only when demanded, facilitating efficient chaining of combinators like `map` and `filter` without intermediate stream instantiation. Utility functions and advanced concepts include using `unfold` for memory-efficient stream generation, and implementing combinators like `hasSubsequence` using the `tails` function.
+
+To facilitate inspecting streams, helper functions can be created. For instance, a function to convert a `Stream` to a standard `List` will force the evaluation of the stream for inspection in the REPL. Furthermore, developers can place other utility functions that operate on a `Stream` inside the `Stream` trait. Regarding functionality, one can implement `take(n)` to return the first $n$ elements of a stream, and `drop(n)` to skip the first $n$ elements. A function named `takeWhile` can return all starting elements of a stream that satisfy a given predicate, having the signature `def takeWhile(p: A => Boolean): Stream[A]`. 
+
+In functional programming, separating the description of computations from the execution of those computations is a major theme. Earlier chapters introduced concepts like first-class functions, which capture computation and execute it upon receiving arguments, and the use of `Option`, which captured the fact of potential errors. With `Stream`, however, programmers can build a computation that produces a sequence of elements without executing the steps until those elements are actually needed.
+
+More generally, laziness allows separating the description of an expression from its evaluation. This ability provides powerful control: a developer may describe a 

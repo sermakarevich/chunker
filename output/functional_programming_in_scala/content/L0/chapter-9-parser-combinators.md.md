@@ -1,0 +1,8 @@
+# chapter-9-parser-combinators.md
+
+**Parent:** [[content/L1/functional-algebra-synthesis|functional-algebra-synthesis]] — The synthesis details how functional programming APIs are designed using algebras, detailing specific combinators and types like Option, Either, Stream, Par, and flatMap. It covers advanced topics such as managing non-strictness for optimal data transformation, resolving concurrency deadlocks using the Actor model, enabling context-sensitive parsing via `flatMap`, and structuring comprehensive error reporting mechanisms.
+
+
+When designing a functional API, it is crucial to define the core behavior using an algebra—a collection of data types, functions over those types, and formal laws or axioms. This approach ensures that the API's meaning is determined by its relationships to other types (defined by functions and laws), rather than solely by its internal data representation, a viewpoint often associated with category theory. 
+
+For instance, to create a parser that recognizes zero or more repetitions of the character 'a' and returns the count of 'a's, one can first define a preliminary combinator, `many`, which accepts a `Parser[A]` and returns a `Parser[List[A]]`. While this approach is functional, it is inefficient because it forces the construction of an intermediate list merely to extract its length. A more efficient method is to introduce the `map` combinator, which applies a function `f` to a `Parser[A]` to produce a `Parser[B]`. Using `map`, the count can be calculated via the expression `map(many(char('a')))(_.size)`, which is equivalent to defining a dedicated function: `val numA: Parser[Int] = char('a').many.map(_.size)`. Developers expect that `run(numA)(

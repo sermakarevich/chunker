@@ -1,0 +1,20 @@
+# parser-algebra-enhancements
+
+**Parent:** [[content/L1/parser-algebra-enhancements-2|parser-algebra-enhancements-2]] — The parser algebra was significantly enhanced by introducing a stack-based error structure (`ParseError(stack: List[(Location,String)])`), which allows developers to track error context and is managed by a `push` helper. State tracking requires the `Result` type, which now explicitly carries `charsConsumed: Int`. The new `flatMap` combinator enables context-sensitive parsing by advancing the input location and calculating cumulative consumption, while the `attempt` combinator, coupled with the `isCommitted` flag in `Failure`, controls commitment during ambiguous parsing and the `or` combinator's fallthrough logic.
+
+To enhance error reporting in the parser algebra, developers must first refine the `ParseError` structure. Initially, reporting a `ParseError` only included a single `Location` and a `String` message. To provide greater granularity, the error mechanism must store a stack of errors, defined as a structure: `case class ParseError(stack: List[(Location,String)])`. This modification allows the structure to record the full context of the parser when a failure occurs. To programmatically manage this error context, developers can introduce a helper function, `push`. The `push` function takes a `Location` object and a `String` message, and it returns a new `ParseError` instance by updating the existing stack using the `copy` method: `def push(loc: Location, msg: String): ParseError = copy(stack = (loc,msg) :: stack)`. This function utilizes the default argument mechanism in Scala. The existing `Location` object already holds the full input string and an offset within that string.
+
+To improve the error handling further, the `Result` sealed trait must be extended to include a Boolean value in the `Failure` constructor, indicating whether the parser failed in a committed state: `case class Failure(get: ParseError, isCommitted: Boolean) extends Result[Nothing]`.
+
+The `attempt` combinator is used to manage commitment: `def attempt[A](p: Parser[A]): Parser[A] = s => p(s).uncommit`. It utilizes a helper function, `uncommit`, defined on `Result`: `def uncommit: Result[A] = this match { case Failure(e,true) => Failure(e,false); case _ => this }`. This helper function simply cancels the commitment of any failures that occurred.
+
+Similarly, the `or` combinator can utilize the `isCommitted` flag in `Failure` to control the execution flow. In the expression `x or y`, if `x` succeeds, the entire expression succeeds. If `x` fails in a committed state, the program must fail early and skip running `y`. Otherwise, if `x` fails in an uncommitted state, the program runs `y` and ignores the result of `x`:
+`def or[A](x: Parser[A], y: => Parser[A]): Parser[A] = s => x(s) match { case Failure(e,false) => y(s); case r => r }`.
+
+For the final primitive, `flatMap`, which enables context-sensitive parsing by allowing the selection of a second parser to depend on the result of the first parser, the implementation involves advancing the location before calling the second parser. Developers use a helper function, `advanceBy`, on `Location`, which simply increments the offset: `def advanceBy(n: Int): Location = copy(offset = offset+n)`.
+
+If the first parser consumes any characters, the design must ensure that the second parser is committed. This is achieved using a helper function, `addCommit`, on `ParseError`: `def addCommit(isCommitted: Boolean): Result[A] = this match { case Failure(e,c) => Failure(e, c || isCommitted); case _ => this }`.
+
+Furthermore, a helper function, `advanceSuccess`, is used to correctly calculate the total number of characters consumed when using `flatMap`. `advanceSuccess` is defined as follows: `def advanceSuccess(n: Int): Result[A] = this match { case Success(a,m) => Success(a,n+m); case _ => this }`.
+
+Finally, the implementation of `flatMap` is given by: `def flatMap[A,B](f: Parser[A])(g: A => Parser[B]): Parser[B] = s => f(s) match { case Success(a,n) => g(a)(s.advanceBy(n)).addCommit(n != 0); case e@Failure(_,_) => e }`.

@@ -1,0 +1,9 @@
+# purely-functional-state-modeling
+
+**Parent:** [[content/L1/functional-abstraction-patterns|functional-abstraction-patterns]] — Functional programming mandates explicit state management via generalizations like `State[S,A]` (e.g., `Rand[A] = State[RNG, A]`) and utilizes combinators such as `map`, `map2`, and `sequence` to model state transitions abstractly. Furthermore, functional APIs for parallel computations (`Par[A]`) and lazy streams (`Stream[A]`) solve issues of side effects, excessive intermediate data structure allocation, and forced sequential execution, respectively, by ensuring non-strict evaluation and controlled side-effect timing.
+
+Purely functional state management requires an explicit mechanism for handling state transitions. The generic function signature `def map[S,A,B](a: S => (A,S))(f: A => B): S => (B,S)` reveals the generalized pattern: instead of relying on a specific state type like `RNG` (for random number generation), functional programming introduces a general type, `State[S,+A]`, which represents a state action. This `State` type is designed for a computation that carries some state `S` along, or equivalently, a state action, state transition, or statement.
+
+For instance, `State` can be defined as a wrapper class around the underlying function: `case class State[S,+A](run: S => (A,S))`. The core concept is establishing a single, general-purpose type to enable the creation of general-purpose functions for common patterns in stateful programs. By defining `type Rand[A] = State[RNG, A]`, the specialized `Rand` type becomes a type alias for the general `State` type, using `RNG` as the state type `S`.
+
+Functional programming naturally enables the modeling of imperative programs using state actions. In the imperative paradigm, a program is a sequence of statements, where each statement may modify the program state. In the purely functional approach, this state modification is simulated because 

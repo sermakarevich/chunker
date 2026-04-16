@@ -1,0 +1,13 @@
+# stream-processing-multi-sink-io
+
+**Parent:** [[content/L1/algebraic-computation-model|algebraic-computation-model]] — Advanced functional programming APIs, such as those using Stream, Par, or Free types, enforce referential transparency by modeling computation and side effects as first-class algebraic values; specific mechanisms include the `Stream` trait for non-strict computation and the `Channel` type for resource-safe I/O pipelines.
+
+When developing stream processing logic, one can use the `flatMap` combinator on the `Process` type to handle advanced operations, such as multi-sink output, which is analogous to dynamic resource allocation. This approach is crucial because it preserves resource safety; specifically, all file handles will be automatically closed by the runner when processing is complete, even if exceptions occur. All exceptions encountered during execution will be reported by the `runLog` function when the program is executed. 
+
+To implement multi-sink output, one must follow specific structured steps. For example, to process data from `fahrenheits.txt` and write the result to a single file named `celsius.txt`, the computation is written as: `val convertAll: Process[IO,Unit] = (for { out <- fileW("celsius.txt").once; file <- lines("fahrenheits.txt"); _ <- lines(file).map(line => fahrenheitToCelsius(line.toDouble)).flatMap(celsius => out(celsius.toString)).} yield ()) drain`.
+
+For multi-sink processing, the program structure involves switching the order of the `flatMap` calls. To write the transformed data to multiple files, where each output file name is created by appending `.celsius` to the original input file name, the code is: `val convertMultisink: Process[IO,Unit] = (for { file <- lines("fahrenheits.txt"); _ <- lines(file).map(line => fahrenheitToCelsius(line.toDouble)).map(_ toString).to(fileW(file + ".celsius"))} yield ()) drain`.
+
+This mechanism allows developers to attach additional transformations at any point in the process. For instance, filtering and mapping can be combined, as shown in the following example: `val convertMultisink2: Process[IO,Unit] = (for { file <- lines("fahrenheits.txt"); _ <- lines(file).filter(!_.startsWith("#")).map(line => fahrenheitToCelsius(line.toDouble)).filter(_ > 0).map(_ toString).to(fileW(file + ".celsius"))} yield ()) drain`. This specific example shows the application of filtering for lines not starting with `#` and filtering for temperatures greater than 0 (to ignore below zero temperatures).
+
+These ideas of stream processing and incremental I/O are widely applicable, as detailed in the `15.4 Applications` section.

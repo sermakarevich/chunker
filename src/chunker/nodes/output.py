@@ -80,7 +80,14 @@ class MarkdownRenderer:
 
         self._write_index(state, output_dir)
 
+    @staticmethod
+    def _sanitize_slug(slug: str) -> str:
+        sanitized = slug.replace("/", "-").replace("\\", "-").replace("\x00", "")
+        sanitized = sanitized.strip(". ")
+        return sanitized or "untitled"
+
     def _resolve_filename(self, slug: str) -> str:
+        slug = self._sanitize_slug(slug)
         if slug not in self._used_filenames:
             self._used_filenames[slug] = 1
             return slug

@@ -1,0 +1,15 @@
+# parallel-combinator-implementation
+
+**Parent:** [[content/L1/functional-programming-advanced-combinators|functional-programming-advanced-combinators]] — Parallel computations require combinators like `parMap` (`def parMap[A,B](ps: List[A])(f: A => B): Par[List[B]]`) and `parFilter` (`def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]]`), which must be implemented using established primitives like `asyncF(f)` and `sequence` to manage complex asynchronous logic and ensure proper adherence to timeout requirements.
+
+In Chapter 7, the discussion aims to determine which parallel computation combinators are truly primitive abstractions. The following section demonstrates how to implement the `parMap` function using existing combinators. To define `parMap`, the function signature must be `def parMap[A,B](ps: List[A])(f: A => B): Par[List[B]]`. The implementation process involves two steps: first, mapping the input list `ps` to a list of parallel computations (`List[Par[B]]`) using `asyncF(f)`, where `asyncF` converts a standard function `A => B` into a function `A => Par[B]` by forking a parallel computation. This allows for the easy generation of $N$ parallel computations. Second, the developer must convert the resultant `List[Par[B]]` into the `Par[List[B]]` required by the `parMap` return type. This necessity leads to the definition of a function called `sequence`, with the signature `def sequence[A](ps: List[Par[A]]): Par[List[A]]`. 
+
+Once the `sequence` function is defined, the implementation for `parMap` becomes: 
+
+`def parMap[A,B](ps: List[A])(f: A => B): Par[List[B]] = fork { val fbs: List[Par[B]] = ps.map(asyncF(f)); sequence(fbs) }`
+
+When executing this implementation, the `parMap` function returns immediately, even when processing a very large input list. However, when the user later calls `run`, the system executes a single asynchronous computation. This computation itself then spawns $N$ parallel computations and subsequently waits for all of these individual computations to finish, collecting their results into a list. 
+
+The next task is to implement `parFilter`, which filters elements of a list in parallel, with the signature `def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]]`. The text notes that another strong argument against defining `parMap` as a new primitive is its complexity, especially when considering the need to properly respect timeouts. Reusing established primitive combinators is advantageous because it prevents the duplication of complex logic.
+
+Finally, the reader is encouraged to experiment by writing other useful parallel computations. Suggestions include: 1) Creating a more general version of the parallel summation function (used earlier in the chapter) and applying it to find the maximum value of an `IndexedSeq` in parallel. 2) Writing a function that takes a list of paragraphs (`List[String]`) and returns the total number of words across all paragraphs in parallel, generalizing this function as much as possible. 3) Implementing `map3`, `map4`, and `map5` using the existing `map2` combinator.
