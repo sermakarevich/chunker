@@ -56,7 +56,11 @@ class Pipeline:
         self._checkpointer = Checkpointer(Path(config.checkpoint_path))
 
     def run(self, text: str, document_id: str) -> ProcessingResult:
-        state = PipelineState.create(document_id, text)
+        if self._checkpointer.exists():
+            logger.info("Checkpoint found, resuming from last position")
+            state = self._checkpointer.load(expected_document_id=document_id)
+        else:
+            state = PipelineState.create(document_id, text)
         return self._process(state)
 
     def resume(self) -> ProcessingResult:

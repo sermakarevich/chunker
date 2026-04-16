@@ -132,6 +132,7 @@ class TestPipelineRun:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks()
         )
+        checkpointer.exists.return_value = False
         text = "Hello world. This is a test."
         chunk1 = _chunk("chunk-001", (0, 12))
         chunk2 = _chunk("chunk-002", (12, 28))
@@ -165,6 +166,7 @@ class TestPipelineRun:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks()
         )
+        checkpointer.exists.return_value = False
         text = "Hello."
         chunk = _chunk("chunk-001", (0, 6))
 
@@ -191,6 +193,7 @@ class TestPipelineRun:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks()
         )
+        checkpointer.exists.return_value = False
         text = "Hello."
         chunk = _chunk("chunk-001", (0, 6))
 
@@ -218,6 +221,7 @@ class TestPipelineRun:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks()
         )
+        checkpointer.exists.return_value = False
         text = "Hello."
         chunk = _chunk("chunk-001", (0, 6))
 
@@ -234,6 +238,37 @@ class TestPipelineRun:
         assert isinstance(result, ProcessingResult)
         assert result.state.document_id == "doc-1"
         assert result.total_chunks == 1
+
+
+    def test_run_resumes_from_checkpoint_when_exists(self):
+        pipeline, extractor, rewriter, sweeper, checkpointer = (
+            self._make_pipeline_with_mocks()
+        )
+        text = "Hello world. More text here."
+        checkpointer.exists.return_value = True
+
+        restored_state = PipelineState.create("doc-1", text)
+        restored_state.cursor_position = 13
+        restored_state.chunk_counter = 1
+        restored_state.chunks["chunk-001"] = _chunk("chunk-001", (0, 13))
+        restored_state.pending_summaries[0] = ["chunk-001"]
+        checkpointer.load.return_value = restored_state
+
+        chunk2 = _chunk("chunk-002", (13, 27))
+
+        def extract_side_effect(state):
+            state.cursor_position = len(text)
+            state.chunk_counter = 2
+            return chunk2
+
+        extractor.extract_next.side_effect = extract_side_effect
+        rewriter.rewrite.side_effect = lambda c, s: c
+
+        result = pipeline.run(text, "doc-1")
+
+        checkpointer.load.assert_called_once_with(expected_document_id="doc-1")
+        assert extractor.extract_next.call_count == 1
+        assert result.total_chunks == 2
 
 
 class TestPipelineResume:
@@ -435,6 +470,7 @@ class TestPipelineOutput:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks(config)
         )
+        checkpointer.exists.return_value = False
         text = "Hello world."
         self._setup_single_chunk(extractor, rewriter, text)
 
@@ -447,6 +483,7 @@ class TestPipelineOutput:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks(config)
         )
+        checkpointer.exists.return_value = False
         text = "Hello world."
         self._setup_single_chunk(extractor, rewriter, text)
 
@@ -459,6 +496,7 @@ class TestPipelineOutput:
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks(config)
         )
+        checkpointer.exists.return_value = False
         text = "Hello world."
         self._setup_single_chunk(extractor, rewriter, text)
 
