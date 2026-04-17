@@ -18,6 +18,6 @@ run input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model
     echo "Output: $output_dir"
     uv run chunker run {{ input }} --model {{ model }} --output-dir "$output_dir"
 
-run-fixture model="gemma4:latest":
-    pdftotext output/opus47/Claude_Opus_4.7_System_Card.pdf output/opus47/opus47_system_card.txt
-    just run output/opus47/opus47_system_card.txt {{ model }} output/opus47/
+run-fixture model="gemma4:31b":
+    pdftotext output/claude_code/Dive_into_Claude_Code.pdf output/claude_code/Dive_into_Claude_Code.txt
+    just run output/claude_code/Dive_into_Claude_Code.txt {{ model }} output/claude_code_gemma/

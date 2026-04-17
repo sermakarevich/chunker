@@ -10,6 +10,7 @@ from chunker.checkpoint import Checkpointer
 from chunker.config import ChunkerConfig
 from chunker.context import ContextBuilder
 from chunker.llm.service import LLMService
+from chunker.metrics import Metrics
 from chunker.nodes.aggregation import AggregationSweeper
 from chunker.nodes.chunking import ChunkExtractor
 from chunker.nodes.output import JsonExporter, MarkdownRenderer
@@ -56,28 +57,64 @@ class Pipeline:
         self._checkpointer = Checkpointer(Path(config.checkpoint_path))
 
     def run(self, text: str, document_id: str) -> ProcessingResult:
+        metrics = Metrics()
         if self._checkpointer.exists():
-            logger.info("Checkpoint found, resuming from last position")
             state = self._checkpointer.load(expected_document_id=document_id)
+            metrics.resumed_chunks = len(state.chunks)
+            logger.info(
+                "Checkpoint found — resuming from chunk %d, position %d/%d",
+                state.chunk_counter,
+                state.cursor_position,
+                len(state.source_text),
+            )
         else:
             state = PipelineState.create(document_id, text)
-        return self._process(state)
+        return self._process(state, metrics)
 
     def resume(self) -> ProcessingResult:
+        metrics = Metrics()
         state = self._checkpointer.load()
-        return self._process(state)
+        metrics.resumed_chunks = len(state.chunks)
+        logger.info(
+            "Resuming from chunk %d, position %d/%d",
+            state.chunk_counter,
+            state.cursor_position,
+            len(state.source_text),
+        )
+        return self._process(state, metrics)
 
-    def _process(self, state: PipelineState) -> ProcessingResult:
+    def _process(self, state: PipelineState, metrics: Metrics) -> ProcessingResult:
         while state.has_more_text:
-            chunk = self._extractor.extract_next(state)
-            chunk = self._rewriter.rewrite(chunk, state)
+            with metrics.track("extraction", chunk_id=f"chunk-{state.chunk_counter + 1:03d}"):
+                chunk = self._extractor.extract_next(state)
+
+            with metrics.track("rewriting", chunk_id=chunk.id):
+                chunk = self._rewriter.rewrite(chunk, state)
+
             state.chunks[chunk.id] = chunk
             state.pending_summaries.setdefault(0, []).append(chunk.id)
-            self._sweeper.sweep(state)
-            self._checkpointer.save(state)
 
-        self._write_output(state)
-        return ProcessingResult.from_state(state)
+            with metrics.track("aggregation"):
+                self._sweeper.sweep(state)
+
+            with metrics.track("checkpointing"):
+                self._checkpointer.save(state)
+
+            pct = state.cursor_position / len(state.source_text) * 100
+            logger.info(
+                "Completed %s — position %d/%d (%.1f%%)",
+                chunk.id,
+                state.cursor_position,
+                len(state.source_text),
+                pct,
+            )
+
+        with metrics.track("output"):
+            self._write_output(state)
+
+        result = ProcessingResult.from_state(state)
+        logger.info(metrics.report(result.total_chunks, result.total_blocks))
+        return result
 
     def _write_output(self, state: PipelineState) -> None:
         output_dir = Path(self._config.output_dir)

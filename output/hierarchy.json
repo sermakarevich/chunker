@@ -1,0 +1,20 @@
+{
+  "document_id": "doc-1",
+  "root_block_ids": [],
+  "blocks": {},
+  "chunks": {
+    "chunk-001": {
+      "id": "chunk-001",
+      "source_span": [
+        0,
+        6
+      ],
+      "original_text": "Original text.",
+      "context": "Rewritten text.",
+      "summary": "Summary.",
+      "filename": "",
+      "parent_block_id": null,
+      "forced_split": false
+    }
+  }
+}
