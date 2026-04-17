@@ -1,0 +1,5 @@
+# disordered-eating-evaluation-sets
+
+**Parent:** [[content/L1/safety-evaluations-across-domains|safety-evaluations-across-domains]] — Anthropic's Claude Opus 4.7 demonstrated superior safety performance across multiple domains, achieving a 99.92% harmless rate and 0.01% benign refusal rate in single-turn child safety testing, and an 82% appropriate response rate in multi-turn self-harm evaluations. The company implemented procedural updates, including splitting evaluation sets for disordered eating and separating multi-turn graders for suicide and self-harm, to enhance safety scrutiny, while continuing to monitor and address the model's tendency to accept user-supplied framing in ambiguous or dual-use contexts.
+
+Anthropic created new single-turn evaluation sets specifically dedicated to concerns surrounding disordered eating. These sets were introduced in the Claude Mythos Preview System Card and decouple the disordered eating evaluations from the broader suicide and self-harm testing. The results for these new evaluation sets are reported below.

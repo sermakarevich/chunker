@@ -19,7 +19,5 @@ run input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model
     uv run chunker run {{ input }} --model {{ model }} --output-dir "$output_dir"
 
 run-fixture model="gemma4:latest":
-    # pdftotext .sddw/chunker/test_fixture_agentic_rag.pdf tests/fixtures/agentic_rag_full.txt
-    # pdftotext ./output/the_pragmatic_programmer/pragm.pdf ./output/the_pragmatic_programmer/the_pragmatic_programmer.txt
-    pdftotext ./output/functional_programming_in_scala/Functional-Programming-in-Scala.pdf ./output/functional_programming_in_scala/functional_programming_in_scala.txt
-    just run ./output/functional_programming_in_scala/functional_programming_in_scala.txt {{ model }}
+    pdftotext output/opus47/Claude_Opus_4.7_System_Card.pdf output/opus47/opus47_system_card.txt
+    just run output/opus47/opus47_system_card.txt {{ model }} output/opus47/
