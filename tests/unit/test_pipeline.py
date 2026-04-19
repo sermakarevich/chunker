@@ -128,9 +128,9 @@ class TestPipelineRun:
 
         return pipeline, extractor, rewriter, sweeper, checkpointer
 
-    def test_run_processes_all_text(self):
+    def test_run_processes_all_text(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
-            self._make_pipeline_with_mocks()
+            self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))
         )
         checkpointer.exists.return_value = False
         text = "Hello world. This is a test."
@@ -162,9 +162,9 @@ class TestPipelineRun:
         assert checkpointer.save.call_count == 2
         assert result.total_chunks == 2
 
-    def test_run_adds_chunk_to_state_and_pending(self):
+    def test_run_adds_chunk_to_state_and_pending(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
-            self._make_pipeline_with_mocks()
+            self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))
         )
         checkpointer.exists.return_value = False
         text = "Hello."
@@ -189,9 +189,9 @@ class TestPipelineRun:
         assert "chunk-001" in chunks_snapshot
         assert pending_snapshot[0] == ["chunk-001"]
 
-    def test_run_calls_sweep_after_adding_chunk(self):
+    def test_run_calls_sweep_after_adding_chunk(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
-            self._make_pipeline_with_mocks()
+            self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))
         )
         checkpointer.exists.return_value = False
         text = "Hello."
@@ -217,9 +217,9 @@ class TestPipelineRun:
 
         assert call_order == ["rewrite", "sweep", "save"]
 
-    def test_run_returns_processing_result(self):
+    def test_run_returns_processing_result(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
-            self._make_pipeline_with_mocks()
+            self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))
         )
         checkpointer.exists.return_value = False
         text = "Hello."
@@ -240,9 +240,9 @@ class TestPipelineRun:
         assert result.total_chunks == 1
 
 
-    def test_run_resumes_from_checkpoint_when_exists(self):
+    def test_run_resumes_from_checkpoint_when_exists(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
-            self._make_pipeline_with_mocks()
+            self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))
         )
         text = "Hello world. More text here."
         checkpointer.exists.return_value = True
@@ -272,8 +272,8 @@ class TestPipelineRun:
 
 
 class TestPipelineResume:
-    def test_resume_loads_checkpoint_and_continues(self):
-        config = _config()
+    def test_resume_loads_checkpoint_and_continues(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
         with patch("chunker.pipeline.ChatOllama"):
             pipeline = Pipeline(config)
 
@@ -312,8 +312,8 @@ class TestPipelineResume:
         assert extractor.extract_next.call_count == 1
         assert result.total_chunks == 2
 
-    def test_resume_with_fully_processed_checkpoint(self):
-        config = _config()
+    def test_resume_with_fully_processed_checkpoint(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
         with patch("chunker.pipeline.ChatOllama"):
             pipeline = Pipeline(config)
 

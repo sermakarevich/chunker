@@ -14,6 +14,9 @@ Information persistence:
 - The rewritten context should be at least as information-dense as the original
 - Remove academic citation markers like [7], [10, 11], [13] — they are noise without a bibliography
 
+## Rewrite instructions
+{rewrite_instructions}
+
 ## Context from earlier processing
 {context_text}
 

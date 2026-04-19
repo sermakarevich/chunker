@@ -19,8 +19,14 @@ def completeness_prompt(window_text: str, context_text: str) -> str:
     )
 
 
-def rewrite_prompt(chunk_text: str, context_text: str) -> str:
-    return _load("rewrite").format(chunk_text=chunk_text, context_text=context_text)
+def rewrite_prompt(
+    chunk_text: str, context_text: str, rewrite_instructions: str = "no instructions"
+) -> str:
+    return _load("rewrite").format(
+        chunk_text=chunk_text,
+        context_text=context_text,
+        rewrite_instructions=rewrite_instructions,
+    )
 
 
 def grouping_prompt(summaries_text: str, min_size: int, max_size: int) -> str:
@@ -30,11 +36,16 @@ def grouping_prompt(summaries_text: str, min_size: int, max_size: int) -> str:
 
 
 def synthesize_prompt(
-    children_text: str, metadata_text: str, min_tokens: int, max_tokens: int
+    children_text: str,
+    metadata_text: str,
+    min_tokens: int,
+    max_tokens: int,
+    rewrite_instructions: str = "no instructions",
 ) -> str:
     return _load("synthesize").format(
         children_text=children_text,
         metadata_text=metadata_text,
         min_tokens=min_tokens,
         max_tokens=max_tokens,
+        rewrite_instructions=rewrite_instructions,
     )

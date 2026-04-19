@@ -21,6 +21,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("input_file", help="Path to input text file")
     run_parser.add_argument("--model", default=None, help="Model name")
     run_parser.add_argument("--output-dir", default=None, help="Output directory")
+    run_parser.add_argument(
+        "--rewrite-instructions",
+        default=None,
+        help="Instructions for how the LLM should rewrite text "
+        "(e.g., 'rewrite so a non-ML specialist can understand it')",
+    )
 
     resume_parser = subparsers.add_parser("resume", help="Resume from checkpoint")
     resume_parser.add_argument("checkpoint_file", help="Path to checkpoint file")
@@ -34,6 +40,8 @@ def run_command(args: argparse.Namespace) -> None:
     text = input_path.read_text()
 
     config_kwargs = {}
+    if args.rewrite_instructions:
+        config_kwargs["rewrite_instructions"] = args.rewrite_instructions
     if args.output_dir:
         config_kwargs["output_dir"] = args.output_dir
         config_kwargs["checkpoint_path"] = str(

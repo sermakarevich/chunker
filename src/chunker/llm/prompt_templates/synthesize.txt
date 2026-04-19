@@ -13,6 +13,9 @@ Information persistence:
 - The synthesized context should be at least as information-dense as the combined children
 - Remove academic citation markers like [7], [10, 11], [13] — they are noise without a bibliography
 
+## Rewrite instructions
+{rewrite_instructions}
+
 ## Metadata (surrounding context)
 {metadata_text}
 

@@ -44,6 +44,8 @@ class ChunkerConfig:
 
     context_budget_tokens: int = 20000
 
+    rewrite_instructions: str = "no instructions"
+
     checkpoint_path: str = "checkpoint.json"
     output_dir: str = "output"
     model: str = "qwen3:32b"

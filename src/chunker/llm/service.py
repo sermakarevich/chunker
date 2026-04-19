@@ -57,7 +57,9 @@ class LLMService:
         *,
         chunk_id: str | None = None,
     ) -> RewriteResult:
-        prompt = rewrite_prompt(chunk_text, context_text)
+        prompt = rewrite_prompt(
+            chunk_text, context_text, self._config.rewrite_instructions
+        )
         return self._call(prompt, RewriteResult, "rewrite_chunk", chunk_id)
 
     def group_summaries(
@@ -84,7 +86,13 @@ class LLMService:
         block_id: str | None = None,
     ) -> BlockContextResult:
         children_text = "\n\n---\n\n".join(children_contexts)
-        prompt = synthesize_prompt(children_text, metadata_text, min_tokens, max_tokens)
+        prompt = synthesize_prompt(
+            children_text,
+            metadata_text,
+            min_tokens,
+            max_tokens,
+            self._config.rewrite_instructions,
+        )
         return self._call(prompt, BlockContextResult, "synthesize_block", block_id)
 
     def _call(
