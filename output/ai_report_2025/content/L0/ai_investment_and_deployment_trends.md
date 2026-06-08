@@ -1,0 +1,5 @@
+# ai_investment_and_deployment_trends
+
+**Parent:** [[content/L1/ai-index-2025-technical-performance-and-landscape|ai-index-2025-technical-performance-and-landscape]] — The 2025 AI Index Report highlights OpenAI's o3 achieving SOTA scores on GPQA Diamond (87.7%) and ARC-AGI (87.5% with high compute), alongside Waymo's 150,000 weekly paid rides and Figure AI's Figure 02 humanoid robot.
+
+The AI and machine learning landscape shows significant trends in investment and deployment. In terms of investment, the US leads in AI funding, though a large number of AI startups are based in the US. Private investment in AI has increased up to 2023, with a focus on generative AI. In terms of deployment, generative AI is being adopted across various sectors, including marketing, software development, and customer service. Companies are utilizing these tools for content creation, code generation, and automated support. There is also a growing emphasis on the ethical deployment of AI, focusing on bias mitigation and transparency.

@@ -1,0 +1,5 @@
+# ai_skills_demand_trends.json
+
+**Parent:** [[content/L1/ai-economic-labor-trends-2025|ai-economic-labor-trends-2025]] — The 2025 AI Index Report shows that the US leads in AI skill penetration, while growth is fastest in emerging markets, with demand expanding beyond technical roles into healthcare and finance.
+
+The provided text analyzes labor market trends and the demand for AI skills, focusing on US-based and global data. In the United States, demand for AI skills in job postings has grown significantly, with a noted increase in the requirement for AI expertise across various roles. Specifically, AI skills are now requested in a higher percentage of job postings than in previous years. Global trends mirror this, showing a surge in AI-related job requirements. The data highlights that the need for AI expertise is not limited to technical roles but is expanding into a wider variety of professional functions. Furthermore, the text mentions a correlation between the adoption of AI tools within organizations and the corresponding increase in the demand for employees who possess the skills to operate and implement these technologies.

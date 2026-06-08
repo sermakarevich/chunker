@@ -1,5 +1,0 @@
-# [file]
-
-**Parent:** [[content/L1/multi-scale-constraint-framework|multi-scale-constraint-framework]] — The synthesized framework integrates fixed character profiles (student Tim with exact passions for science, exploration, and discovery; main character Lily navigating to the top of a tall tower), technical constraints (a single-file HTML request with an unpopulated requirements list, a dragon story generation prompt, and game development rules mandating extensive thinking time, iterative prompt detailing, a strict 1000-line code limit per file, and executable single-file delivery), and analytical metrics (corporate financial parameters of a 0.5 debt-to-equity ratio, 12% WACC, and 25% tax rate; a kinetic scenario of a person running on a road; and a global military unit ranking query), all bound by a rigid JSON output schema containing context, summary, and filename keys while operating within a data engineering best practices guide for Apache Airflow ETL pipelines. 
-
-[context]

@@ -1,5 +1,0 @@
-# 1984_theme_analysis
-
-**Parent:** [[content/L1/airflow-etl-framework-ai-expert-profile-financial-metrics-1984-themes|airflow-etl-framework-ai-expert-profile-financial-metrics-1984-themes]] — The synthesis integrates an experienced data engineer's Apache Airflow ETL best practices framework with fixed profiles for Tim (student, passionate about science, loves to explore, knack for discovering new things) and an AI specialist (high expertise in AI, AI agents, advanced data analytics, specializing in high impact via AI solutions), while capturing user requests for a single-file HTML page with an absent requirements list, a dragon story generation prompt, keyword text analysis, a query on the main theme of government control over information in '1984', and a list of the most powerful military units globally, all alongside corporate financial metrics of a 0.5 debt-to-equity ratio, 12% WACC, and 25% tax rate for a new investment project evaluation, a kinetic scenario of a person running on a road, and strict JSON output schema requirements.
-
-In the novel '1984', what was the main theme of the government's control over information?

@@ -1,0 +1,5 @@
+# us_policymaker_ai_perceptions
+
+**Parent:** [[content/L1/ai-public-perception-policy-sentiment|ai-public-perception-policy-sentiment]] — Public perception of AI is marked by a tension between utility and trust, with US policymakers and the general public expressing significant anxiety over job displacement and demanding transparency, accountability, and stronger verification standards for AI-generated content. Global AI preparedness is currently tracked using metrics like the 'AI-readiness index' and the 'AI-readiness index' to evaluate infrastructure and workforce readiness.
+
+The provided text includes data on the attitudes of US policymakers toward AI and the methodologies used to track AI's impact. Specifically, it highlights that among US policymakers, there is a notable divide in perception: while some view AI as a significant opportunity for economic growth and efficiency, others express concern over risks related to job displacement and security. Additionally, the text discusses the use of the 'AI-readiness index' and other metrics to evaluate how different countries are preparing for the integration of AI into their infrastructure and workforce.

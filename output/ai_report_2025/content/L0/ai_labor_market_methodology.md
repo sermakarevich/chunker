@@ -1,0 +1,5 @@
+# ai_labor_market_methodology
+
+**Parent:** [[content/L1/ai-workforce-methodology-and-metrics|ai-workforce-methodology-and-metrics]] — This block details the methodology for analyzing AI labor market trends using LinkedIn data and the 'Worldized' dataset, distinguishing between 'AI skills' and the broader 'AI-related skills' taxonomy to track skill penetration, AI-powered roles, and the transition of software engineers and data scientists into AI-centric work.
+
+The provided text details the methodologies, data sources, and specific metrics used to analyze AI-related trends, specifically focusing on the labor market, technical implementation, and regulatory landscapes. It describes how the 'AI-related' category of jobs was defined and identifies the specific skills (e.g., machine learning, natural language processing) and tools (e.g., PyTorch, TensorFlow) used to track the proliferation of AI in the workforce. Additionally, it outlines the use of the 'Worldized' dataset and various labor market indices to measure the economic impact and adoption rates of AI across different regions and industries.

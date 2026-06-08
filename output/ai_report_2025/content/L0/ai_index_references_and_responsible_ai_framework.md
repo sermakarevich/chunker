@@ -1,0 +1,5 @@
+# ai_index_references_and_responsible_ai_framework
+
+**Parent:** [[content/L1/ai-performance-evaluation-methodology|ai-performance-evaluation-methodology]] — The 2025 AI Index Report utilizes benchmark datasets, metrics like accuracy, F1 score, and perplexity, and human-in-the-loop evaluation to measure LLM performance while avoiding data contamination. It also employs a keyword-based analysis of literature focusing on data privacy and security to assess Responsible AI frameworks.
+
+The provided text consists of several sections from the 2025 AI Index Report. The first part is a comprehensive bibliography for the technical and a a series of references linked to the 'Technical' section, citing various research papers and benchmarks used to evaluate AI performance. The second part describes the methodology and framework for analyzing the 'Responsible AI' or 'Responsible AI' section, specifically detailing the keywords and categories used to analyze the literature. These categories include data privacy, security, and the general framework for assessing the ethical and responsible deployment of AI systems.

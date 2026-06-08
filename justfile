@@ -19,5 +19,5 @@ run input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model
     uv run chunker run {{ input }} --model {{ model }} --output-dir "$output_dir"
 
 run-fixture model="gemma4:31b":
-    pdftotext output/claude_code/Dive_into_Claude_Code.pdf output/claude_code/Dive_into_Claude_Code.txt
-    just run output/claude_code/Dive_into_Claude_Code.txt {{ model }} output/claude_code_gemma/
+    pdftotext output/ai_report_2025/hai_ai_index_report_2025.pdf output/ai_report_2025/report.txt
+    just run output/ai_report_2025/report.txt {{ model }} output/ai_report_2025/

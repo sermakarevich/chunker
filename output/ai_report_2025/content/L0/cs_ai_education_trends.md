@@ -1,0 +1,5 @@
+# cs_ai_education_trends
+
+**Parent:** [[content/L1/ai-cs-education-training-trends|ai-cs-education-training-trends]] — US K-12 education faces significant disparities in AI access for marginalized students, while higher education is seeing a rise in CS degree diversity and a shift toward generative AI in non-technical curricula. Simultaneously, global workforce demand for AI skills has outpaced traditional four-year degrees, increasing reliance on bootcamps and micro-credentials.
+
+The provided text discusses education and training statistics related to computer science and AI, specifically focusing on the United States and global trends. In the U.S., there is a notable increase in the number of students pursuing computer science degrees, with a significant rise in diversity among those students. Globally, there is a growing emphasis on AI literacy and the integration of AI tools into educational curricula to prepare students for an AI-driven job market. The text also mentions the role of specialized bootcamps and certification programs in bridging the skills gap for those entering the tech workforce without traditional degrees.

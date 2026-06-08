@@ -1,0 +1,63 @@
+# ai-research-patents-models-trends
+
+**Parent:** [[content/L2/ai-index-report-2025-comprehensive-analysis-2|ai-index-report-2025-comprehensive-analysis-2]] — The AI Index Report 2025 details a record $252.3 billion in global private AI investment in 2024, a 280-fold reduction in GPT-3.5 level inference costs, and the convergence of frontier model performance where the top two models differ by only 0.7%.
+
+The Artificial Intelligence Index Report 2025, published by the AI Index Steering Committee at Stanford University's Institute for Human-Centered AI, provides a comprehensive analysis of the global landscape of AI research, patents, and model development. 
+
+### AI Research Output and Influence
+
+AI research is distributed geographically and by sector. In 2023, East Asia and the Pacific led in research output, accounting for 34.5% of all AI publications, followed by Europe and Central Asia at 18.2% and North America at 10.3%. In terms of influence, East Asia and the Pacific held the largest share of citations in 2023 at 37.1%. While North America and East Asia and the Pacific had roughly equal citation shares in 2017, North American and European shares have since declined as East Asia and the Pacific's share has risen sharply.
+
+On a country level, China was the global leader in AI article publications in 2023, accounting for 23.2% of the total. Other leaders included Europe (15.2%), India and the United States (each at 9.2%). Since 2016, China's share of publications has steadily increased, while the U.S. share remained stable until 2021 before slightly declining. In 2023, Chinese AI publications accounted for 22.6% of all citations, followed by Europe at 20.9% and the United States at 13.0%. The late 2010s marked the turning point where China surpassed the U.S. and Europe as the leading source of citations.
+
+By sector, academic institutions remained the primary source of AI publications worldwide in 2023, accounting for 84.9% of all publications, compared to 85.9% in 2013. Industry contributed 7.1% and government institutions 4.9%, while nonprofit organizations contributed 1.7%. Regional differences exist: in the United States, 16.5% of AI publications originate from industry, whereas in China, only 8.0% do. Conversely, China has the highest percentage of AI publications from the education sector at 84.5%.
+
+Research topics in 2023 were dominated by machine learning (75.7%), followed by computer vision (47.2%), pattern recognition (25.9%), and natural language processing (17.1%), with a sharp increase in publications on generative AI.
+
+Analysis of the 100 most-cited AI publications from 2021 to 2023 shows that the United States consistently had the highest number of top-cited publications: 64 in 2021, 59 in 2022, and 50 in 2023, although its share has gradually declined. China ranked second in each of those years. By sector, academia consistently produced the most top-cited research: 34 publications in 2021, 27 in 2022, and 42 in 2023. Industry contributions dropped from 17 in 2021 and 19 in 2022 to 7 in 2023. By organization, Google led each year from 2021 to 2023, tying with Tsinghua University in 2023 when both contributed eight publications to the top 100. In 2023, Carnegie Mellon University was the highest-ranked U.S. academic institution.
+
+### AI Patents and Notable Models
+
+Regarding AI patents, using PATSTAT Global data from the European Patent Office, the number of granted AI patents worldwide grew from 3,833 in 2010 to 122,511 in 2023, with a 29.6% increase in the last year. Regional distribution shows a widening gap: 82.4% of granted AI patents as of 2023 originated from East Asia and the Pacific, with North America at 14.2%. China led globally with 69.7% of all granted patents in 2023, followed by the United States at 14.2%. The U.S. share declined from a peak of 42.8% in 2015.
+
+Per 100,000 inhabitants in 2023, South Korea had the most AI patents with 17.27, followed by Luxembourg (15.31), China (6.08), the United States (5.20), and Japan (4.58). Between 2013 and 2023, Luxembourg (8,216%), China (6,317%), and Sweden (3,453%) saw the greatest percentage increase in per capita patenting.
+
+"Notable machine learning models" are influential models selected by Epoch AI based on state-of-the-art advancements, historical significance, or high citation rates. In 2024, the United States led in the production of notable AI models with 40 models, followed by China with 15 and France with three. All major geographic groups (U.S., China, Europe) released fewer notable models in 2024 than in 2023. Since 2003, the United States has produced more notable models than the UK, China, and Canada.
+
+Industry has led in releasing notable models since 2014. In 2024, industry produced 55 notable AI models, and no notable AI models originated from academia in 2024. The proportion of notable AI models from industry grew to 90.2% in 2024. Over the past decade, Google has led in production with 187 models, followed by Meta (82) and Microsoft (39). In 2024 specifically, top contributors were Google (7 models), OpenAI (7 models), and Alibaba (6 models). Since 2014, the most prolific academic institutions have been Carnegie Mellon University (25), Stanford University (25), and Tsinghua University (22).
+
+### Model Development, Training, and Access
+
+Detailed data on notable AI models from 2014 to 2024 shows that Google produced the most (187), followed by Meta (82), Microsoft (39), OpenAI (36), Carnegie Mellon University (25), Stanford University (25), Tsinghua University (22), UC Berkeley (22), Nvidia (17), the University of Oxford (16), MIT (15), Salesforce (15), the University of Washington (15), Alibaba (14), and the Allen Institute for AI (12). DeepMind research is categorized under Google.
+
+Notable AI models are released under various access types. API access allows interaction via queries without direct weight access; Hosted access (no API) is via platform interface only (e.g., Gemini 2.0 Pro); Open weights (restricted use) provide weights but limit commercial use or redistribution (e.g., DeepSeek-V3); Open weights (unrestricted) allow free use, modification, and redistribution (e.g., AlphaGeometry); Open weights (noncommercial) restrict use to research or noncommercial purposes (e.g.,g Mistral Large 2); and unreleased models remain private (e.g., ESM3 98B). In 2024, API access was the most common release type (20 of 61 models), accounting for 32.8% of notable models. Other 2024 release types included Open weights (restricted use) at 18.03%, Unreleased at 16.39%, Open weights (unrestricted) at 11.48%, Open weights (noncommercial) at 9.84%, Hosted access (no API) at 8.20%, and Unknown at 3.28%.
+
+In 2024, 60.7% of notable AI models were launched without corresponding training code, contrasting with traditional open-source software practices.
+
+Model parameters—numerical values learned during training—have risen sharply since the early 2010s. Training dataset sizes for LLMs double approximately every eight months. For example, the Transformer model (2017) was trained on 2 billion tokens, GPT-3 175B (davinci) on 374 billion tokens, and Meta’s Llama 3.3 (2024) on 15 trillion tokens. Training times have also increased: AlexNet (2012) took five to six days, Llama 3.1-405B took approximately 90 days, and Google’s Gemini 1.0 Ultra (2023) took around 100 days.
+
+Compute refers to the computational resources required to train and operate a model. Training compute for notable AI models doubles roughly every five months. For instance, AlexNet (2012) required 470 petaFLOP, the original Transformer (2017) required 7,400 petaFLOP, and GPT-4o required 38 billion petaFLOP.
+
+### Compute Scaling and Data Bottlenecks
+
+DeepSeek’s V3 model (December 2024) achieved high performance with fewer computational resources than leading LLMs. However, top 10 Chinese language models have scaled their training compute at a rate of approximately three times per year since late 2021, which is slower than the five times per year trend seen globally since 2018. Top-tier U.S. models have generally been more computationally intensive than those from China.
+
+There is a significant debate on whether AI models will run out of training data. Epoch AI estimates the total effective stock of data available for training: Common Crawl contains a median of 130 trillion tokens, the indexed web holds 510 trillion tokens, and the entire web (including private data)andung 3,100 trillion tokens. Image stocks are estimated at 300 trillion and video at 1,350 trillion. Epoch AI projects, with an 80% confidence interval, that the current stock of training data will be fully utilized between 2026 and 2032. 
+
+This projection revises earlier estimates that high-quality text data would be depleted by 2024. The update is based on research showing that web data performs better than curated corpora and that models can be trained on the same datasets multiple times. Concerns exist regarding synthetic data; models trained on repeated cycles of synthetic data likely lose representation of the tails of distributions, leading to "model collapse." However, when synthetic data is layered on top of real data rather than replacing it, collapse does not occur, though it not necessarily improves performance or reduces test loss. 
+
+Synthetic data's high-fidelity generation is improving, though it remains distinguishable from real data. Some methods, such as using Synthetic Data Vault (SDV) versus Walmart data to train an XGBoost classifier, showed synthetic data could outperform real data in some cases. In the healthcare domain, some architectures using synthetic data have shown enhanced performance, increasing F1 scores or AUROC by 5%–10% on minority classes. To improve factuality, the FactTune-FS methods introduced by Stanford and the University of North Carolina at Chapel Hill have tended to outperform other RLHF and decoding-based methods.
+
+As web content becomes increasingly AI-generated, future models will be trained on non-human material. While synthetic data and data augmentation (modifying real data through tilting or image mixing) and offer a near-infinite supply, their effective use requires further research into learning dynamics.
+
+### Inference Costs and Performance
+
+Inference costs—the expense of querying a trained model, measured in USD per million tokens—have decreased substantially for fixed performance thresholds. For a model scoring the equivalent of GPT-3.5 (64.8 on MMLU), the cost dropped from $20 per million tokens in November 2022 to $0.07 per million tokens in October 2024 (Gemini-1.5-Flash-8B), a more than 280-fold reduction. For models scoring above 50% on GPQA, costs declined from $15 per million tokens in May 2024 to December 2024 (Phi 4) at $0.12 per million tokens. Epoch AI estimates that LLM inference costs have fallen between nine and 900 times per year depending on the task. 
+
+While top-tier models from developers like OpenAI, Meta, and Anthropic remain more expensive, reflecting a premium for the premium performance, the general trend is a clear improvement in AI performance per dollar spent.
+
+## Children
+- [[content/L0/ai-research-output-and-citations|ai-research-output-and-citations]] — In 2023, East Asia and the Pacific led in AI research output (34.5% of publications) and citations (37.1%), while academia remained the primary source of publications (84.9%) and top-cited works, although the U.S. led in the number of top-100 most-cited publications (50 in 2023).
+- [[content/L0/global-ai-patents-and-notable-models|global-ai-patents-and-notable-models]] — Global AI patents grew from 3,833 in 2010 to 122,511 in 2023, with China holding 69.7% of the total. In 2024, the US led in notable AI models with 40, while industry-led production reached 90.2% of all notable models.
+- [[content/L0/notable-ai-models-trends|notable-ai-models-trends]] — Between 2014 and 2024, Google led in notable AI model production with 187 models, while in 2024, API access became the most common release type at 32.8%. Training compute for these models has doubled every five months, with GPT-4o requiring 38 billion petaFLOP compared to AlexNet's 470 petaFLOP.
+- [[content/L0/ai-model-data-compute-costs|ai-model-data-compute-costs]] — The 2025 AI Index Report notes that training compute for Chinese models has scaled 3x per year since 2021, while the US leads in compute intensity. It also projects that public training data may be depleted between 2026 and 2032, with a discussion on the risks and benefits of synthetic data and a 280-fold reduction in MMLU-equivalent inference costs from 2022 to 2024.

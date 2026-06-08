@@ -1,0 +1,5 @@
+# ai_alignment_and_bias_mitigation
+
+**Parent:** [[content/L1/ai-technical-performance-2025-3|ai-technical-performance-2025-3]] — The AI Index Report 2025 analyzes technical milestones, such as OpenAI's o3 achieving 87.7% on GPQA Diamond and 87.5% on ARC-AGI, alongside the robotics expansion of Figure 02 and Waymo's 150,000 weekly rides, while addressing systemic bias and the use of AI-generated deepfakes in the 2024 election cycle.
+
+The provided text discusses aspects of Responsible AI and the technical/social challenges associated with the deployment of Large Language Models. It focuses on implicit bias and the 'alignment' problem—ensuring that AI systems act in accordance with human values and intentions. Specifically, it highlights that models may exhibit biases reflecting the data they were trained on and that 'jailbreaking' or 'prompt injection' can bypass safety filters. The text emphasizes the importance of RLHF (Reinforcement Learning from Human Feedback) and red-teaming as methods to mitigate these risks and align model outputs with safety guidelines.

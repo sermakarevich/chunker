@@ -1,0 +1,5 @@
+# ai_policy_and_applications_overview
+
+**Parent:** [[content/L1/global-ai-policy-legislation-science|global-ai-policy-legislation-science]] — Between 2014 and 2024, 133 AI bills were introduced in the U.S. Congress and 35 states introduced AI bills in 2023, while the EU AI Act categorizes AI systems into four risk levels (unacceptable, high, limited, and minimal) and China regulates deep synthesis and recommendation algorithms.
+
+The provided text details several key developments in AI policy, legislation, and scientific application across global contexts. In the realm of policy and legislation, the EU has implemented the AI Act to regulate AI usage. In the United States, there is an increasing focus on AI's impact on labor and copyright. Regarding specific technical applications and scientific research, the text highlights the use of AI in drug discovery and materials science. Furthermore, the documents mention the role of AI in climate modeling and the development of autonomous systems, while emphasizing the importance of AI safety and alignment to ensure these systems remain beneficial to humanity.
