@@ -18,6 +18,9 @@ run input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model
     echo "Output: $output_dir"
     uv run chunker run {{ input }} --model {{ model }} --output-dir "$output_dir"
 
-run-fixture model="gemma4:31b":
-    pdftotext output/ai_report_2025/hai_ai_index_report_2025.pdf output/ai_report_2025/report.txt
-    just run output/ai_report_2025/report.txt {{ model }} output/ai_report_2025/
+# Process a PDF directly -- no lossy pdftotext pre-pass. `model` must be vision-capable.
+run-pdf input="output/ai_report_2026/ai_index_report_2026.pdf" model="gemma4:latest" output="output/ai_report_2026/":
+    just run {{ input }} {{ model }} {{ output }}
+
+run-fixture model="gemma4:latest":
+    just run-pdf output/ai_report_2026/ai_index_report_2026.pdf {{ model }} output/ai_report_2026/

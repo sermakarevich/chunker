@@ -20,6 +20,8 @@ def _chunk(
     forced: bool = False,
     filename: str = "",
     summary: str = "",
+    image_paths: list[str] | None = None,
+    page_span: tuple[int, int] | None = None,
 ) -> Chunk:
     return Chunk(
         id=chunk_id,
@@ -31,6 +33,8 @@ def _chunk(
         parent_block_id=parent,
         forced_split=forced,
         metadata={},
+        page_span=page_span,
+        image_paths=image_paths or [],
     )
 
 
@@ -548,6 +552,86 @@ class TestChunkMarkdown:
         MarkdownRenderer().render(hierarchy_state, tmp_path)
         content = (tmp_path / "content" / "L0" / "first-topic-overview.md").read_text()
         assert "## Content" not in content
+
+
+# --- Source-page image links (pdf chunks) ---
+
+
+class TestChunkSourcePages:
+    def _pdf_state(self, tmp_path: Path) -> PipelineState:
+        """A single pdf-derived chunk covering pages 3-4."""
+        pages_dir = tmp_path / "pages"
+        state = PipelineState.create(document_id="doc-pdf", source_text="p" * 100)
+        state.chunks = {
+            "chunk-001": _chunk(
+                "chunk-001",
+                filename="pdf-topic-one",
+                summary="First pdf topic.",
+                page_span=(3, 4),
+                image_paths=[
+                    str(pages_dir / "page-0003.png"),
+                    str(pages_dir / "page-0004.png"),
+                ],
+            ),
+        }
+        return state
+
+    def test_pdf_chunk_has_source_pages_section(self, tmp_path: Path) -> None:
+        MarkdownRenderer().render(self._pdf_state(tmp_path), tmp_path)
+        content = (tmp_path / "content" / "L0" / "pdf-topic-one.md").read_text()
+        assert "## Source pages" in content
+
+    def test_pdf_chunk_image_links_relative_and_numbered(self, tmp_path: Path) -> None:
+        MarkdownRenderer().render(self._pdf_state(tmp_path), tmp_path)
+        content = (tmp_path / "content" / "L0" / "pdf-topic-one.md").read_text()
+        # Page number derives from page_span[0] + offset; path is relative to the
+        # chunk's .md location (content/L0) -> ../../pages/.
+        assert "![Page 3](../../pages/page-0003.png)" in content
+        assert "![Page 4](../../pages/page-0004.png)" in content
+
+    def test_pdf_chunk_image_links_resolve_on_disk(self, tmp_path: Path) -> None:
+        pages_dir = tmp_path / "pages"
+        pages_dir.mkdir(parents=True, exist_ok=True)
+        (pages_dir / "page-0003.png").write_bytes(b"\x89PNG")
+        (pages_dir / "page-0004.png").write_bytes(b"\x89PNG")
+        MarkdownRenderer().render(self._pdf_state(tmp_path), tmp_path)
+        md_path = tmp_path / "content" / "L0" / "pdf-topic-one.md"
+        for rel in ("../../pages/page-0003.png", "../../pages/page-0004.png"):
+            assert (md_path.parent / rel).resolve().is_file(), (
+                f"relative image link does not resolve: {rel}"
+            )
+
+    def test_source_pages_is_last_section(self, tmp_path: Path) -> None:
+        MarkdownRenderer().render(self._pdf_state(tmp_path), tmp_path)
+        content = (tmp_path / "content" / "L0" / "pdf-topic-one.md").read_text()
+        # The context body precedes the Source pages heading.
+        assert content.index("Context of chunk-001") < content.index("## Source pages")
+
+    def test_text_chunk_has_no_source_pages_section(self, tmp_path: Path) -> None:
+        state = PipelineState.create(document_id="doc-text", source_text="t" * 100)
+        state.chunks = {
+            "chunk-001": _chunk(
+                "chunk-001", filename="text-topic", summary="Text topic."
+            ),
+        }
+        MarkdownRenderer().render(state, tmp_path)
+        content = (tmp_path / "content" / "L0" / "text-topic.md").read_text()
+        assert "## Source pages" not in content
+        assert "![Page" not in content
+
+    def test_text_chunk_bytes_unchanged(self, tmp_path: Path) -> None:
+        """A chunk with empty image_paths renders byte-for-byte as before."""
+        state = PipelineState.create(document_id="doc-text", source_text="t" * 100)
+        state.chunks = {
+            "chunk-001": _chunk(
+                "chunk-001", filename="text-topic", summary="Text topic."
+            ),
+        }
+        MarkdownRenderer().render(state, tmp_path)
+        content = (tmp_path / "content" / "L0" / "text-topic.md").read_text()
+        assert content == (
+            "# text-topic\n\n**Parent:** [[index]]\n\nContext of chunk-001\n"
+        )
 
 
 # --- Block markdown content ---

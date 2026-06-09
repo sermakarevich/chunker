@@ -128,6 +128,28 @@ chunker resume output/checkpoint.json --output-dir output/
 
 The system checkpoints after every chunk and summary block, so long documents can survive interruptions without reprocessing from scratch.
 
+### PDF input
+
+Point Chunker at a `.pdf` and it processes the document directly -- no `pdftotext` pre-pass that discards tables, charts, and figures. Each page is rendered to an image, chunks are split on page edges, and a vision-capable model reads every page so the data in those visuals lands in each chunk's self-sufficient context.
+
+```bash
+# Process a PDF with a vision-capable model
+chunker run report.pdf --vision-model gemma4:latest --output-dir output/
+
+# Render pages at a higher resolution (default: 150 DPI)
+chunker run report.pdf --vision-model gemma4:latest --pdf-dpi 200 --output-dir output/
+
+# Resume a PDF run -- pass the vision model again so rewriting stays multimodal
+chunker resume output/checkpoint.json --vision-model gemma4:latest --output-dir output/
+```
+
+| Option | Default | Purpose |
+|--------|---------|---------|
+| `--vision-model` | falls back to `--model` | Vision-capable model used to read each page's figures and tables (PDF input only) |
+| `--pdf-dpi` | 150 | Resolution for rendering PDF pages to images (PDF input only) |
+
+Each rendered chunk's markdown ends with a **Source pages** section linking the original page images, so a human reader can open the source figures alongside the rewritten context. Text and markdown inputs are unaffected -- they follow exactly the same path and output as before.
+
 ## Configuration
 
 All thresholds are named parameters -- no magic numbers:

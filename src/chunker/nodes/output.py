@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from chunker.models import Chunk, SummaryBlock
@@ -123,6 +124,16 @@ class MarkdownRenderer:
             lines.append("**Parent:** [[index]]")
 
         lines.extend(["", chunk.context, ""])
+
+        if chunk.image_paths:
+            md_dir = content_dir / f"L{level}"
+            start_page = chunk.page_span[0] if chunk.page_span else 1
+            lines.append("## Source pages")
+            for offset, image_path in enumerate(chunk.image_paths):
+                page_number = start_page + offset
+                rel_path = os.path.relpath(image_path, start=md_dir)
+                lines.append(f"![Page {page_number}]({rel_path})")
+            lines.append("")
 
         (content_dir / f"L{level}" / f"{filename}.md").write_text("\n".join(lines))
 
