@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, patch
 
 from chunker.cli import build_parser, run_command, resume_command
 from chunker.config import ChunkerConfig
-from chunker.models import Chunk, SummaryBlock
+from chunker.loaders import LoadedDocument
+from chunker.models import Chunk, Page, SummaryBlock
 from chunker.pipeline import Pipeline, ProcessingResult
 from chunker.state import PipelineState
 
@@ -26,6 +27,28 @@ def _chunk(chunk_id: str, span: tuple[int, int] = (0, 10)) -> Chunk:
         parent_block_id=None,
         forced_split=False,
         metadata={},
+    )
+
+
+def _page(number: int) -> Page:
+    return Page(
+        number=number, text=f"page {number} text", image_path=f"/img/page-{number}.png"
+    )
+
+
+def _pdf_chunk(chunk_id: str, page_span: tuple[int, int]) -> Chunk:
+    return Chunk(
+        id=chunk_id,
+        source_span=(0, 0),
+        original_text="Page text.",
+        context="Rewritten.",
+        summary="Summary.",
+        filename="",
+        parent_block_id=None,
+        forced_split=False,
+        metadata={},
+        page_span=page_span,
+        image_paths=[f"/img/page-{page_span[0]}.png"],
     )
 
 
@@ -103,6 +126,7 @@ class TestPipelineInit:
             model=config.model, base_url=config.ollama_base_url
         )
         assert pipeline._extractor is not None
+        assert pipeline._page_extractor is not None
         assert pipeline._rewriter is not None
         assert pipeline._sweeper is not None
         assert pipeline._checkpointer is not None
@@ -361,6 +385,39 @@ class TestBuildParser:
         )
         assert args.output_dir == "/tmp/out"
 
+    def test_run_with_pdf_dpi(self):
+        parser = build_parser()
+        args = parser.parse_args(["run", "input.pdf", "--pdf-dpi", "200"])
+        assert args.pdf_dpi == 200
+
+    def test_run_with_vision_model(self):
+        parser = build_parser()
+        args = parser.parse_args(
+            ["run", "input.pdf", "--vision-model", "gemma4:latest"]
+        )
+        assert args.vision_model == "gemma4:latest"
+
+    def test_run_pdf_flags_default_to_none(self):
+        parser = build_parser()
+        args = parser.parse_args(["run", "input.txt"])
+        assert args.pdf_dpi is None
+        assert args.vision_model is None
+
+    def test_resume_with_model_and_vision_model(self):
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "resume",
+                "checkpoint.json",
+                "--model",
+                "qwen3:32b",
+                "--vision-model",
+                "gemma4:latest",
+            ]
+        )
+        assert args.model == "qwen3:32b"
+        assert args.vision_model == "gemma4:latest"
+
 
 class TestRunCommand:
     @patch("chunker.cli.Pipeline")
@@ -373,7 +430,7 @@ class TestRunCommand:
         mock_result.total_chunks = 1
         mock_result.total_blocks = 0
         mock_result.root_block_ids = []
-        mock_pipeline.run.return_value = mock_result
+        mock_pipeline.run_document.return_value = mock_result
         mock_pipeline_cls.return_value = mock_pipeline
 
         parser = build_parser()
@@ -384,7 +441,11 @@ class TestRunCommand:
         mock_pipeline_cls.assert_called_once()
         config = mock_pipeline_cls.call_args[0][0]
         assert isinstance(config, ChunkerConfig)
-        mock_pipeline.run.assert_called_once_with("Hello world.", input_file.stem)
+        mock_pipeline.run_document.assert_called_once()
+        document = mock_pipeline.run_document.call_args.args[0]
+        assert document.source_text == "Hello world."
+        assert document.pages is None
+        assert document.document_id == input_file.stem
 
     @patch("chunker.cli.Pipeline")
     def test_run_applies_model_profile(self, mock_pipeline_cls, tmp_path):
@@ -396,7 +457,7 @@ class TestRunCommand:
         mock_result.total_chunks = 0
         mock_result.total_blocks = 0
         mock_result.root_block_ids = []
-        mock_pipeline.run.return_value = mock_result
+        mock_pipeline.run_document.return_value = mock_result
         mock_pipeline_cls.return_value = mock_pipeline
 
         parser = build_parser()
@@ -419,7 +480,7 @@ class TestRunCommand:
         mock_result.total_chunks = 0
         mock_result.total_blocks = 0
         mock_result.root_block_ids = []
-        mock_pipeline.run.return_value = mock_result
+        mock_pipeline.run_document.return_value = mock_result
         mock_pipeline_cls.return_value = mock_pipeline
 
         parser = build_parser()
@@ -431,6 +492,51 @@ class TestRunCommand:
 
         config = mock_pipeline_cls.call_args[0][0]
         assert config.checkpoint_path == str(output_dir / "checkpoint.json")
+
+    @patch("chunker.cli.Pipeline")
+    def test_run_routes_pdf_and_resolves_vision_model(
+        self, mock_pipeline_cls, tmp_path
+    ):
+        import pymupdf
+
+        pdf = tmp_path / "doc.pdf"
+        doc = pymupdf.open()
+        doc.new_page().insert_text((72, 100), "Page one text.")
+        doc.save(str(pdf))
+        doc.close()
+
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.total_chunks = 1
+        mock_result.total_blocks = 0
+        mock_result.root_block_ids = []
+        mock_pipeline.run_document.return_value = mock_result
+        mock_pipeline_cls.return_value = mock_pipeline
+
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "run",
+                str(pdf),
+                "--output-dir",
+                str(tmp_path / "out"),
+                "--pdf-dpi",
+                "72",
+                "--vision-model",
+                "gemma4:latest",
+            ]
+        )
+
+        run_command(args)
+
+        config = mock_pipeline_cls.call_args[0][0]
+        assert config.pdf_dpi == 72
+        assert config.vision_model == "gemma4:latest"
+        # PDF + vision model => effective model promoted before Pipeline build.
+        assert config.model == "gemma4:latest"
+        document = mock_pipeline.run_document.call_args.args[0]
+        assert document.pages is not None
+        assert document.source_text is None
 
 
 class TestPipelineOutput:
@@ -549,3 +655,108 @@ class TestResumeCommand:
         config = mock_pipeline_cls.call_args[0][0]
         assert config.checkpoint_path == str(checkpoint_file)
         mock_pipeline.resume.assert_called_once()
+
+    @patch("chunker.cli.Pipeline")
+    def test_resume_promotes_vision_model(self, mock_pipeline_cls, tmp_path):
+        checkpoint_file = tmp_path / "checkpoint.json"
+        checkpoint_file.write_text("{}")
+
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.total_chunks = 1
+        mock_result.total_blocks = 0
+        mock_result.root_block_ids = []
+        mock_pipeline.resume.return_value = mock_result
+        mock_pipeline_cls.return_value = mock_pipeline
+
+        parser = build_parser()
+        args = parser.parse_args(
+            ["resume", str(checkpoint_file), "--vision-model", "gemma4:latest"]
+        )
+
+        resume_command(args)
+
+        config = mock_pipeline_cls.call_args[0][0]
+        assert config.vision_model == "gemma4:latest"
+        # A PDF resume needs the vision model promoted to the effective model.
+        assert config.model == "gemma4:latest"
+
+
+class TestPipelinePdfMode:
+    def _pipeline_with_mocks(self, config: ChunkerConfig) -> Pipeline:
+        with patch("chunker.pipeline.ChatOllama"):
+            pipeline = Pipeline(config)
+        pipeline._extractor = MagicMock()
+        pipeline._page_extractor = MagicMock()
+        pipeline._rewriter = MagicMock()
+        pipeline._sweeper = MagicMock()
+        pipeline._checkpointer = MagicMock()
+        return pipeline
+
+    def test_process_uses_page_extractor_in_pdf_mode(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline = self._pipeline_with_mocks(config)
+        pipeline._checkpointer.exists.return_value = False
+        pages = [_page(1), _page(2)]
+
+        def page_extract_side_effect(state):
+            state.chunk_counter += 1
+            n = state.chunk_counter
+            state.cursor_page = n
+            return _pdf_chunk(f"chunk-{n:03d}", (n, n))
+
+        pipeline._page_extractor.extract_next.side_effect = page_extract_side_effect
+        pipeline._rewriter.rewrite.side_effect = lambda c, s: c
+
+        document = LoadedDocument(document_id="doc-pdf", source_text=None, pages=pages)
+        result = pipeline.run_document(document)
+
+        assert pipeline._page_extractor.extract_next.call_count == 2
+        assert pipeline._extractor.extract_next.call_count == 0
+        assert result.total_chunks == 2
+
+    def test_run_document_resumes_existing_checkpoint(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline = self._pipeline_with_mocks(config)
+        pages = [_page(1), _page(2)]
+        pipeline._checkpointer.exists.return_value = True
+
+        restored = PipelineState.create_from_pages("doc-pdf", pages)
+        restored.cursor_page = 1
+        restored.chunk_counter = 1
+        restored.chunks["chunk-001"] = _pdf_chunk("chunk-001", (1, 1))
+        pipeline._checkpointer.load.return_value = restored
+
+        def page_extract_side_effect(state):
+            state.chunk_counter += 1
+            state.cursor_page = 2
+            return _pdf_chunk("chunk-002", (2, 2))
+
+        pipeline._page_extractor.extract_next.side_effect = page_extract_side_effect
+        pipeline._rewriter.rewrite.side_effect = lambda c, s: c
+
+        document = LoadedDocument(document_id="doc-pdf", source_text=None, pages=pages)
+        result = pipeline.run_document(document)
+
+        pipeline._checkpointer.load.assert_called_once_with(
+            expected_document_id="doc-pdf"
+        )
+        assert pipeline._page_extractor.extract_next.call_count == 1
+        assert result.total_chunks == 2
+
+    def test_progress_pct_is_mode_aware_and_zero_guarded(self, tmp_path):
+        config = _config(output_dir=str(tmp_path))
+        pipeline = self._pipeline_with_mocks(config)
+
+        text_state = PipelineState.create("d", "abcdefghij")  # len 10
+        text_state.cursor_position = 5
+        assert pipeline._progress_pct(text_state) == 50.0
+
+        empty_text = PipelineState.create("d", "")
+        assert pipeline._progress_pct(empty_text) == 100.0
+
+        pdf_state = PipelineState.create_from_pages(
+            "d", [_page(1), _page(2), _page(3), _page(4)]
+        )
+        pdf_state.cursor_page = 1
+        assert pipeline._progress_pct(pdf_state) == 25.0

@@ -17,7 +17,10 @@ class ChunkRewriter:
         items = self._context.build(state)
         context_text = self._context.format_context(items)
         result = self._llm.rewrite_chunk(
-            chunk.original_text, context_text, chunk_id=chunk.id
+            chunk.original_text,
+            context_text,
+            image_paths=chunk.image_paths,
+            chunk_id=chunk.id,
         )
         chunk.context = result.context
         chunk.summary = result.summary

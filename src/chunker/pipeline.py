@@ -10,10 +10,12 @@ from chunker.checkpoint import Checkpointer
 from chunker.config import ChunkerConfig
 from chunker.context import ContextBuilder
 from chunker.llm.service import LLMService
+from chunker.loaders import LoadedDocument
 from chunker.metrics import Metrics
 from chunker.nodes.aggregation import AggregationSweeper
 from chunker.nodes.chunking import ChunkExtractor
 from chunker.nodes.output import JsonExporter, MarkdownRenderer
+from chunker.nodes.page_chunking import PageChunkExtractor
 from chunker.nodes.rewriting import ChunkRewriter
 from chunker.state import PipelineState
 
@@ -52,23 +54,45 @@ class Pipeline:
         context_builder = ContextBuilder(config)
 
         self._extractor = ChunkExtractor(llm_service, config)
+        self._page_extractor = PageChunkExtractor(llm_service, config)
         self._rewriter = ChunkRewriter(llm_service, context_builder)
         self._sweeper = AggregationSweeper(llm_service, config)
         self._checkpointer = Checkpointer(Path(config.checkpoint_path))
 
     def run(self, text: str, document_id: str) -> ProcessingResult:
+        """Process a plain-text document.
+
+        Retained as a thin back-compat wrapper over :meth:`run_document` so
+        existing text callers and tests keep working unchanged.
+        """
+        return self.run_document(
+            LoadedDocument(document_id=document_id, source_text=text, pages=None)
+        )
+
+    def run_document(self, document: LoadedDocument) -> ProcessingResult:
+        """Process a loaded document in either text or pdf mode.
+
+        Resumes from an existing checkpoint when present (verifying document
+        identity); otherwise builds fresh page state (pdf mode) or text state.
+        The orchestration loop in :meth:`_process` is mode-agnostic.
+        """
         metrics = Metrics()
         if self._checkpointer.exists():
-            state = self._checkpointer.load(expected_document_id=document_id)
+            state = self._checkpointer.load(expected_document_id=document.document_id)
             metrics.resumed_chunks = len(state.chunks)
             logger.info(
-                "Checkpoint found — resuming from chunk %d, position %d/%d",
+                "Checkpoint found — resuming from chunk %d (%.1f%%)",
                 state.chunk_counter,
-                state.cursor_position,
-                len(state.source_text),
+                self._progress_pct(state),
+            )
+        elif document.pages is not None:
+            state = PipelineState.create_from_pages(
+                document.document_id, document.pages
             )
         else:
-            state = PipelineState.create(document_id, text)
+            state = PipelineState.create(
+                document.document_id, document.source_text or ""
+            )
         return self._process(state, metrics)
 
     def resume(self) -> ProcessingResult:
@@ -76,19 +100,21 @@ class Pipeline:
         state = self._checkpointer.load()
         metrics.resumed_chunks = len(state.chunks)
         logger.info(
-            "Resuming from chunk %d, position %d/%d",
+            "Resuming from chunk %d (%.1f%%)",
             state.chunk_counter,
-            state.cursor_position,
-            len(state.source_text),
+            self._progress_pct(state),
         )
         return self._process(state, metrics)
 
     def _process(self, state: PipelineState, metrics: Metrics) -> ProcessingResult:
-        while state.has_more_text:
+        while state.has_more_input:
+            extractor = (
+                self._page_extractor if state.pages is not None else self._extractor
+            )
             with metrics.track(
                 "extraction", chunk_id=f"chunk-{state.chunk_counter + 1:03d}"
             ):
-                chunk = self._extractor.extract_next(state)
+                chunk = extractor.extract_next(state)
 
             with metrics.track("rewriting", chunk_id=chunk.id):
                 chunk = self._rewriter.rewrite(chunk, state)
@@ -102,14 +128,7 @@ class Pipeline:
             with metrics.track("checkpointing"):
                 self._checkpointer.save(state)
 
-            pct = state.cursor_position / len(state.source_text) * 100
-            logger.info(
-                "Completed %s — position %d/%d (%.1f%%)",
-                chunk.id,
-                state.cursor_position,
-                len(state.source_text),
-                pct,
-            )
+            self._log_progress(state, chunk.id)
 
         with metrics.track("output"):
             self._write_output(state)
@@ -117,6 +136,32 @@ class Pipeline:
         result = ProcessingResult.from_state(state)
         logger.info(metrics.report(result.total_chunks, result.total_blocks))
         return result
+
+    def _progress_pct(self, state: PipelineState) -> float:
+        """Completion percent, mode-aware and guarded against zero length."""
+        if state.pages is not None:
+            total = len(state.pages)
+            return state.cursor_page / total * 100 if total else 100.0
+        total = len(state.source_text)
+        return state.cursor_position / total * 100 if total else 100.0
+
+    def _log_progress(self, state: PipelineState, chunk_id: str) -> None:
+        if state.pages is not None:
+            logger.info(
+                "Completed %s — page %d/%d (%.1f%%)",
+                chunk_id,
+                state.cursor_page,
+                len(state.pages),
+                self._progress_pct(state),
+            )
+        else:
+            logger.info(
+                "Completed %s — position %d/%d (%.1f%%)",
+                chunk_id,
+                state.cursor_position,
+                len(state.source_text),
+                self._progress_pct(state),
+            )
 
     def _write_output(self, state: PipelineState) -> None:
         output_dir = Path(self._config.output_dir)

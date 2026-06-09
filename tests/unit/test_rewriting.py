@@ -145,3 +145,30 @@ class TestChunkRewriter:
         result = rewriter.rewrite(chunk, state)
 
         assert result.original_text == "They used this approach extensively."
+
+    def test_text_chunk_passes_empty_image_paths(self, config, mock_llm):
+        context_builder = ContextBuilder(config)
+        rewriter = ChunkRewriter(mock_llm, context_builder)
+        chunk = _make_chunk()  # text chunk: image_paths defaults to []
+        state = _empty_state()
+
+        rewriter.rewrite(chunk, state)
+
+        call_args = mock_llm.rewrite_chunk.call_args
+        assert call_args.kwargs["image_paths"] == []
+
+    def test_pdf_chunk_passes_its_image_paths(self, config, mock_llm):
+        context_builder = ContextBuilder(config)
+        rewriter = ChunkRewriter(mock_llm, context_builder)
+        chunk = _make_chunk()
+        chunk.image_paths = ["/img/page-0001.png", "/img/page-0002.png"]
+        chunk.page_span = (1, 2)
+        state = _empty_state()
+
+        rewriter.rewrite(chunk, state)
+
+        call_args = mock_llm.rewrite_chunk.call_args
+        assert call_args.kwargs["image_paths"] == [
+            "/img/page-0001.png",
+            "/img/page-0002.png",
+        ]
