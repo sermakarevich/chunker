@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from chunker.checkpoint import Checkpointer
-from chunker.models import Chunk, SummaryBlock
+from chunker.models import Chunk, Page, SummaryBlock
 from chunker.state import PipelineState
 
 
@@ -212,3 +212,90 @@ class TestRoundtripEquality:
             assert rest.parent_block_id == orig.parent_block_id
             assert rest.forced_split == orig.forced_split
             assert rest.metadata == orig.metadata
+
+
+@pytest.fixture
+def pdf_state() -> PipelineState:
+    state = PipelineState.create_from_pages(
+        document_id="doc-pdf",
+        pages=[
+            Page(number=1, text="page one", image_path="/abs/pages/page-0001.png"),
+            Page(number=2, text="", image_path="/abs/pages/page-0002.png"),
+        ],
+    )
+    state.cursor_page = 1
+    state.chunks["chunk-001"] = Chunk(
+        id="chunk-001",
+        source_span=(0, 0),
+        original_text="",
+        context="page one context",
+        summary="summary",
+        filename="",
+        parent_block_id=None,
+        forced_split=False,
+        metadata={},
+        page_span=(1, 1),
+        image_paths=["/abs/pages/page-0001.png"],
+    )
+    state.chunk_counter = 1
+    return state
+
+
+class TestPdfCheckpointRoundtrip:
+    def test_pdf_state_roundtrips(self, checkpoint_path, pdf_state):
+        cp = Checkpointer(checkpoint_path)
+        cp.save(pdf_state)
+
+        restored = cp.load()
+        assert restored.cursor_page == 1
+        assert restored.pages is not None
+        assert [p.number for p in restored.pages] == [1, 2]
+        assert restored.pages[1].text == ""
+        chunk = restored.chunks["chunk-001"]
+        assert chunk.page_span == (1, 1)
+        assert chunk.image_paths == ["/abs/pages/page-0001.png"]
+
+    def test_checkpoint_stores_paths_not_bytes(self, checkpoint_path, pdf_state):
+        cp = Checkpointer(checkpoint_path)
+        cp.save(pdf_state)
+
+        raw = checkpoint_path.read_text()
+        data = json.loads(raw)
+        assert data["pages"][0]["image_path"] == "/abs/pages/page-0001.png"
+        assert "image_bytes" not in raw
+        assert "base64" not in raw
+
+
+class TestOldCheckpointMigration:
+    def test_pre_feature_checkpoint_loads(self, checkpoint_path):
+        """A checkpoint written before the PDF feature (no page keys) loads."""
+        old = {
+            "document_id": "doc-legacy",
+            "source_text": "legacy text",
+            "cursor_position": 4,
+            "chunks": {
+                "chunk-001": {
+                    "id": "chunk-001",
+                    "source_span": [0, 4],
+                    "original_text": "leg",
+                    "context": "ctx",
+                    "summary": "sum",
+                    "filename": "",
+                    "parent_block_id": None,
+                    "forced_split": False,
+                    "metadata": {},
+                }
+            },
+            "blocks": {},
+            "pending_summaries": {},
+            "chunk_counter": 1,
+            "block_counters": {},
+        }
+        checkpoint_path.write_text(json.dumps(old))
+
+        restored = Checkpointer(checkpoint_path).load()
+        assert restored.pages is None
+        assert restored.cursor_page == 0
+        chunk = restored.chunks["chunk-001"]
+        assert chunk.page_span is None
+        assert chunk.image_paths == []

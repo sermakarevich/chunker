@@ -1,6 +1,30 @@
 import json
 
-from chunker.models import Chunk, SummaryBlock
+from chunker.models import Chunk, Page, SummaryBlock
+
+
+class TestPage:
+    def test_has_required_fields(self):
+        page = Page(number=3, text="page text", image_path="/abs/pages/page-0003.png")
+        assert page.number == 3
+        assert page.text == "page text"
+        assert page.image_path == "/abs/pages/page-0003.png"
+
+    def test_json_roundtrip_by_path(self):
+        page = Page(number=1, text="", image_path="/abs/pages/page-0001.png")
+        restored = Page.from_json(page.to_json())
+        assert restored.number == 1
+        assert restored.text == ""
+        assert restored.image_path == "/abs/pages/page-0001.png"
+
+    def test_serializes_path_not_bytes(self):
+        page = Page(number=2, text="t", image_path="/abs/pages/page-0002.png")
+        data = page.to_dict()
+        assert data == {
+            "number": 2,
+            "text": "t",
+            "image_path": "/abs/pages/page-0002.png",
+        }
 
 
 class TestChunk:
@@ -66,6 +90,64 @@ class TestChunk:
         assert restored.parent_block_id == chunk.parent_block_id
         assert restored.forced_split is True
         assert restored.metadata == chunk.metadata
+
+    def test_page_fields_default_to_text_mode(self):
+        chunk = Chunk(
+            id="chunk-001",
+            source_span=(0, 100),
+            original_text="original",
+            context="context",
+            summary="summary",
+            filename="original-content",
+            parent_block_id=None,
+            forced_split=False,
+            metadata={},
+        )
+        assert chunk.page_span is None
+        assert chunk.image_paths == []
+
+    def test_pdf_fields_roundtrip(self):
+        chunk = Chunk(
+            id="chunk-007",
+            source_span=(0, 0),
+            original_text="",
+            context="context",
+            summary="summary",
+            filename="f",
+            parent_block_id=None,
+            forced_split=False,
+            metadata={},
+            page_span=(3, 5),
+            image_paths=["/abs/pages/page-0003.png", "/abs/pages/page-0004.png"],
+        )
+        data = json.loads(chunk.to_json())
+        assert data["page_span"] == [3, 5]
+        assert data["image_paths"] == [
+            "/abs/pages/page-0003.png",
+            "/abs/pages/page-0004.png",
+        ]
+
+        restored = Chunk.from_json(chunk.to_json())
+        assert restored.page_span == (3, 5)
+        assert isinstance(restored.page_span, tuple)
+        assert restored.image_paths == chunk.image_paths
+
+    def test_from_dict_migrates_old_checkpoint_without_pdf_keys(self):
+        """A chunk dict written before the PDF feature has no page keys."""
+        old = {
+            "id": "chunk-001",
+            "source_span": [0, 100],
+            "original_text": "original",
+            "context": "context",
+            "summary": "summary",
+            "filename": "f",
+            "parent_block_id": None,
+            "forced_split": False,
+            "metadata": {},
+        }
+        chunk = Chunk.from_dict(old)
+        assert chunk.page_span is None
+        assert chunk.image_paths == []
 
 
 class TestSummaryBlock:

@@ -51,6 +51,11 @@ class ChunkerConfig:
     model: str = "qwen3:32b"
     ollama_base_url: str = "http://localhost:11434"
 
+    pdf_dpi: int = 150
+    vision_model: str | None = None
+    max_pages_per_chunk: int = 8
+    image_format: str = "png"
+
     @classmethod
     def from_model(cls, model: str, **overrides) -> ChunkerConfig:
         profile = MODEL_PROFILES.get(model)

@@ -43,6 +43,20 @@ class TestChunkerConfig:
         assert config.model == "qwen3:32b"
         assert config.ollama_base_url == "http://localhost:11434"
 
+    def test_pdf_defaults(self):
+        config = ChunkerConfig()
+        assert config.pdf_dpi == 150
+        assert config.vision_model is None
+        assert config.max_pages_per_chunk == 8
+        assert config.image_format == "png"
+
+    def test_from_model_passes_pdf_overrides(self):
+        config = ChunkerConfig.from_model(
+            "qwen3:32b", pdf_dpi=300, vision_model="qwen2.5vl:7b"
+        )
+        assert config.pdf_dpi == 300
+        assert config.vision_model == "qwen2.5vl:7b"
+
     def test_from_model_applies_profile(self):
         config = ChunkerConfig.from_model("gemma4:26b")
         assert config.model == "gemma4:26b"

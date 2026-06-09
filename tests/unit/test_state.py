@@ -1,6 +1,14 @@
 import json
 
+from chunker.models import Page
 from chunker.state import PipelineState
+
+
+def _pages() -> list[Page]:
+    return [
+        Page(number=1, text="page one", image_path="/abs/pages/page-0001.png"),
+        Page(number=2, text="", image_path="/abs/pages/page-0002.png"),
+    ]
 
 
 class TestPipelineState:
@@ -39,6 +47,18 @@ class TestPipelineState:
             source_text="",
         )
         assert state.has_more_text is False
+
+    def test_text_mode_has_no_pages(self):
+        state = PipelineState.create(document_id="doc-001", source_text="text")
+        assert state.pages is None
+        assert state.cursor_page == 0
+        assert state.has_more_pages is False
+        assert state.has_more_input is True
+
+    def test_text_mode_has_more_input_tracks_text(self):
+        state = PipelineState.create(document_id="doc-001", source_text="text")
+        state.cursor_position = len(state.source_text)
+        assert state.has_more_input is False
 
     def test_json_roundtrip(self, agentic_rag_text):
         state = PipelineState.create(
@@ -97,3 +117,47 @@ class TestPipelineState:
         assert restored.blocks["block-001"].child_ids == ["chunk-001"]
         assert restored.pending_summaries == {0: ["chunk-001"]}
         assert restored.chunk_counter == 1
+
+
+class TestPipelineStatePdfMode:
+    def test_create_from_pages_initial(self):
+        state = PipelineState.create_from_pages("doc-001", _pages())
+        assert state.document_id == "doc-001"
+        assert state.source_text == ""
+        assert state.cursor_position == 0
+        assert state.cursor_page == 0
+        assert state.pages is not None
+        assert len(state.pages) == 2
+
+    def test_has_more_pages_at_start(self):
+        state = PipelineState.create_from_pages("doc-001", _pages())
+        assert state.has_more_pages is True
+        assert state.has_more_text is False
+        assert state.has_more_input is True
+
+    def test_has_more_pages_at_end(self):
+        state = PipelineState.create_from_pages("doc-001", _pages())
+        state.cursor_page = len(state.pages)
+        assert state.has_more_pages is False
+        assert state.has_more_input is False
+
+    def test_create_from_empty_pages(self):
+        state = PipelineState.create_from_pages("doc-001", [])
+        assert state.has_more_pages is False
+        assert state.has_more_input is False
+
+    def test_json_roundtrip_with_pages(self):
+        state = PipelineState.create_from_pages("doc-001", _pages())
+        state.cursor_page = 1
+
+        serialized = state.to_json()
+        data = json.loads(serialized)
+        assert data["cursor_page"] == 1
+        assert data["pages"][0]["image_path"] == "/abs/pages/page-0001.png"
+        assert data["pages"][1]["text"] == ""
+
+        restored = PipelineState.from_json(serialized)
+        assert restored.cursor_page == 1
+        assert restored.pages is not None
+        assert [p.number for p in restored.pages] == [1, 2]
+        assert restored.pages[0].image_path == "/abs/pages/page-0001.png"
