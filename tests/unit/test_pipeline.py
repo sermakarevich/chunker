@@ -239,7 +239,6 @@ class TestPipelineRun:
         assert result.state.document_id == "doc-1"
         assert result.total_chunks == 1
 
-
     def test_run_resumes_from_checkpoint_when_exists(self, tmp_path):
         pipeline, extractor, rewriter, sweeper, checkpointer = (
             self._make_pipeline_with_mocks(_config(output_dir=str(tmp_path)))

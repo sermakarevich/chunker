@@ -26,7 +26,9 @@ class Metrics:
     resumed_chunks: int = 0
 
     @contextmanager
-    def track(self, step: str, *, chunk_id: str | None = None, block_id: str | None = None):
+    def track(
+        self, step: str, *, chunk_id: str | None = None, block_id: str | None = None
+    ):
         t0 = time.monotonic()
         yield
         record = StepRecord(
@@ -47,7 +49,9 @@ class Metrics:
         ]
 
         new_chunks = total_chunks - self.resumed_chunks
-        lines.append(f"  Chunks: {total_chunks} total ({self.resumed_chunks} resumed, {new_chunks} new)")
+        lines.append(
+            f"  Chunks: {total_chunks} total ({self.resumed_chunks} resumed, {new_chunks} new)"
+        )
         lines.append(f"  Blocks: {total_blocks}")
         lines.append(f"  Wall time: {_fmt(wall)}")
         lines.append("-" * 60)
@@ -87,12 +91,16 @@ class Metrics:
         )
         overhead = wall - accounted
         if wall > 0:
-            lines.append(f"  {'Overhead':<15s}  {_fmt(overhead):>9s} total  {overhead / wall * 100:34.1f}%")
+            lines.append(
+                f"  {'Overhead':<15s}  {_fmt(overhead):>9s} total  {overhead / wall * 100:34.1f}%"
+            )
 
         if new_chunks > 0 and wall > 0:
             per_chunk = wall / new_chunks
             lines.append("-" * 60)
-            lines.append(f"  Throughput: {per_chunk:.1f}s per chunk, {new_chunks / wall * 60:.1f} chunks/min")
+            lines.append(
+                f"  Throughput: {per_chunk:.1f}s per chunk, {new_chunks / wall * 60:.1f} chunks/min"
+            )
 
         lines.append("=" * 60)
         return "\n".join(lines)

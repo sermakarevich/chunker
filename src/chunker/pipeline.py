@@ -85,7 +85,9 @@ class Pipeline:
 
     def _process(self, state: PipelineState, metrics: Metrics) -> ProcessingResult:
         while state.has_more_text:
-            with metrics.track("extraction", chunk_id=f"chunk-{state.chunk_counter + 1:03d}"):
+            with metrics.track(
+                "extraction", chunk_id=f"chunk-{state.chunk_counter + 1:03d}"
+            ):
                 chunk = self._extractor.extract_next(state)
 
             with metrics.track("rewriting", chunk_id=chunk.id):
