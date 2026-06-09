@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import logging
 from unittest.mock import MagicMock, patch
@@ -12,6 +13,7 @@ from chunker.llm.schemas import (
     BlockContextResult,
     CompletenessResult,
     GroupingResult,
+    PageCompletenessResult,
     RewriteResult,
 )
 from chunker.llm.service import LLMService, LLMValidationError
@@ -126,6 +128,122 @@ class TestRewriteChunk:
         assert result.context == "The transformer model uses attention."
         assert result.summary == "Explains transformer attention mechanism."
         assert result.filename == "transformer-attention-mechanism"
+
+
+class TestCheckPageCompleteness:
+    def test_returns_complete_with_page_number(self):
+        expected = PageCompletenessResult(complete=True, split_after_page=5)
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        result = svc.check_page_completeness("=== Page 4 ===\nfoo\n=== Page 5 ===\nbar")
+
+        assert result.complete is True
+        assert result.split_after_page == 5
+
+    def test_returns_incomplete(self):
+        expected = PageCompletenessResult(complete=False, split_after_page=None)
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        result = svc.check_page_completeness("=== Page 1 ===\nmid-thought")
+
+        assert result.complete is False
+        assert result.split_after_page is None
+
+    def test_sends_no_images(self):
+        """FR-04: page completeness is text-only and never attaches an image."""
+        expected = PageCompletenessResult(complete=True, split_after_page=3)
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        svc.check_page_completeness("=== Page 3 ===\ncontent")
+
+        structured = model.with_structured_output.return_value
+        messages = structured.invoke.call_args.args[0]
+        # Text-only: the message content is a bare string, never a multimodal list.
+        assert isinstance(messages[0].content, str)
+
+
+class TestRewriteChunkVision:
+    def test_with_image_paths_builds_multimodal_content(self, tmp_path):
+        img = tmp_path / "page-0001.png"
+        raw_bytes = b"\x89PNG\r\n\x1a\nFAKE-IMAGE-BYTES"
+        img.write_bytes(raw_bytes)
+
+        expected = RewriteResult(context="c", summary="s", filename="f")
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        result = svc.rewrite_chunk("It uses attention.", "ctx", image_paths=[str(img)])
+
+        assert result.context == "c"
+        structured = model.with_structured_output.return_value
+        messages = structured.invoke.call_args.args[0]
+        content = messages[0].content
+        assert isinstance(content, list)
+        assert content[0]["type"] == "text"
+        assert "It uses attention." in content[0]["text"]
+        assert content[1]["type"] == "image_url"
+        expected_b64 = base64.b64encode(raw_bytes).decode("ascii")
+        assert content[1]["image_url"] == f"data:image/png;base64,{expected_b64}"
+
+    def test_multiple_images_produce_one_part_each(self, tmp_path):
+        img1 = tmp_path / "page-0001.png"
+        img1.write_bytes(b"AAA")
+        img2 = tmp_path / "page-0002.png"
+        img2.write_bytes(b"BBB")
+
+        expected = RewriteResult(context="c", summary="s", filename="f")
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        svc.rewrite_chunk("t", "c", image_paths=[str(img1), str(img2)])
+
+        content = model.with_structured_output.return_value.invoke.call_args.args[0][
+            0
+        ].content
+        assert len(content) == 3  # one text part + two image parts
+        assert content[1]["type"] == "image_url"
+        assert content[2]["type"] == "image_url"
+        assert content[1]["image_url"].startswith("data:image/png;base64,")
+        assert content[2]["image_url"].startswith("data:image/png;base64,")
+
+    def test_jpg_extension_maps_to_jpeg_mime(self, tmp_path):
+        img = tmp_path / "scan.jpg"
+        img.write_bytes(b"xyz")
+
+        expected = RewriteResult(context="c", summary="s", filename="f")
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        svc.rewrite_chunk("t", "c", image_paths=[str(img)])
+
+        content = model.with_structured_output.return_value.invoke.call_args.args[0][
+            0
+        ].content
+        assert content[1]["image_url"].startswith("data:image/jpeg;base64,")
+
+    def test_without_images_content_is_plain_string(self):
+        """FR-08: text chunks (no images) keep the byte-for-byte text path."""
+        expected = RewriteResult(context="c", summary="s", filename="f")
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        svc.rewrite_chunk("text", "context")
+
+        messages = model.with_structured_output.return_value.invoke.call_args.args[0]
+        assert isinstance(messages[0].content, str)
+
+    def test_empty_image_list_is_text_only(self):
+        expected = RewriteResult(context="c", summary="s", filename="f")
+        model = _mock_model_structured_raw(expected)
+        svc = LLMService(model, ChunkerConfig())
+
+        svc.rewrite_chunk("text", "context", image_paths=[])
+
+        messages = model.with_structured_output.return_value.invoke.call_args.args[0]
+        assert isinstance(messages[0].content, str)
 
 
 class TestGroupSummaries:

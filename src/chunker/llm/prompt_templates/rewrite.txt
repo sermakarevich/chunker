@@ -14,6 +14,13 @@ Information persistence:
 - The rewritten context should be at least as information-dense as the original
 - Remove academic citation markers like [7], [10, 11], [13] — they are noise without a bibliography
 
+Visual content (when page images are attached):
+- One or more page images may be attached to this message. When they are, treat them as the authoritative source for anything the text layer dropped, and fold their data into the rewritten context.
+- Transcribe every data table you can see into a GitHub-flavoured markdown table, preserving its actual row and column values exactly as shown — not a summary that "a table is present".
+- For every chart, graph, or figure, state its concrete numbers, data series, and axis labels (for example: "bar chart of adoption by year: 2023 = 41%, 2024 = 58%, 2025 = 73%"), not merely that a figure exists.
+- Capture figure and table captions and any numeric annotations or legends shown in the image.
+- If no image is attached, ignore this section and rewrite from the text alone.
+
 ## Rewrite instructions
 {rewrite_instructions}
 

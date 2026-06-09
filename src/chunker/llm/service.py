@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import time
+from pathlib import Path
 from typing import TypeVar
 
 from langchain_core.exceptions import OutputParserException
@@ -14,6 +16,7 @@ from chunker.config import ChunkerConfig
 from chunker.llm.prompts import (
     completeness_prompt,
     grouping_prompt,
+    page_completeness_prompt,
     rewrite_prompt,
     synthesize_prompt,
 )
@@ -21,6 +24,7 @@ from chunker.llm.schemas import (
     BlockContextResult,
     CompletenessResult,
     GroupingResult,
+    PageCompletenessResult,
     RewriteResult,
 )
 
@@ -29,6 +33,33 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 MAX_RETRIES = 3
+
+
+def _image_mime_subtype(path: str) -> str:
+    suffix = Path(path).suffix.lower().lstrip(".")
+    if suffix in {"jpg", "jpeg"}:
+        return "jpeg"
+    return suffix or "png"
+
+
+def _image_data_url(path: str) -> str:
+    encoded = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+    return f"data:image/{_image_mime_subtype(path)};base64,{encoded}"
+
+
+def _build_content(prompt: str, image_paths: list[str] | None):
+    """Build a langchain message content for ``prompt`` plus optional images.
+
+    With no images the content is the bare prompt string — byte-for-byte the
+    pre-feature text path. With images it is a content list: one text part
+    followed by one ``image_url`` data-URL part per image.
+    """
+    if not image_paths:
+        return prompt
+    content: list[dict] = [{"type": "text", "text": prompt}]
+    for path in image_paths:
+        content.append({"type": "image_url", "image_url": _image_data_url(path)})
+    return content
 
 
 class LLMValidationError(Exception):
@@ -50,17 +81,37 @@ class LLMService:
         prompt = completeness_prompt(window_text, context_text)
         return self._call(prompt, CompletenessResult, "check_completeness", chunk_id)
 
+    def check_page_completeness(
+        self,
+        window_text: str,
+        *,
+        chunk_id: str | None = None,
+    ) -> PageCompletenessResult:
+        """Decide whether a candidate page window ends at a page-edge boundary.
+
+        Text-only: the window's extracted text is reasoned over directly and no
+        image is ever sent to the model (page boundaries are detectable from
+        text/headings; vision tokens are paid for only at rewrite).
+        """
+        prompt = page_completeness_prompt(window_text)
+        return self._call(
+            prompt, PageCompletenessResult, "check_page_completeness", chunk_id
+        )
+
     def rewrite_chunk(
         self,
         chunk_text: str,
         context_text: str,
         *,
+        image_paths: list[str] | None = None,
         chunk_id: str | None = None,
     ) -> RewriteResult:
         prompt = rewrite_prompt(
             chunk_text, context_text, self._config.rewrite_instructions
         )
-        return self._call(prompt, RewriteResult, "rewrite_chunk", chunk_id)
+        return self._call(
+            prompt, RewriteResult, "rewrite_chunk", chunk_id, image_paths=image_paths
+        )
 
     def group_summaries(
         self,
@@ -101,8 +152,10 @@ class LLMService:
         schema: type[T],
         event: str,
         entity_id: str | None,
+        *,
+        image_paths: list[str] | None = None,
     ) -> T:
-        messages = [HumanMessage(content=prompt)]
+        messages = [HumanMessage(content=_build_content(prompt, image_paths))]
         last_error: str | None = None
 
         for attempt in range(MAX_RETRIES):

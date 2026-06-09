@@ -8,6 +8,11 @@ class CompletenessResult(BaseModel):
     boundary_phrase: str | None = None
 
 
+class PageCompletenessResult(BaseModel):
+    complete: bool
+    split_after_page: int | None = None
+
+
 class RewriteResult(BaseModel):
     context: str
     summary: str

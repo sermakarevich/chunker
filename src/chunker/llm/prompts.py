@@ -19,6 +19,10 @@ def completeness_prompt(window_text: str, context_text: str) -> str:
     )
 
 
+def page_completeness_prompt(window_text: str) -> str:
+    return _load("page_completeness").format(window_text=window_text)
+
+
 def rewrite_prompt(
     chunk_text: str, context_text: str, rewrite_instructions: str = "no instructions"
 ) -> str:

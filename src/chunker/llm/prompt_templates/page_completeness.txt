@@ -1,0 +1,19 @@
+You are analysing a multi-page document that is being split into self-contained chunks. Every chunk boundary MUST fall on a page edge — a chunk may never begin or end in the middle of a page.
+
+Below is a candidate window of one or more consecutive pages. Each page begins with a marker line of the form "=== Page N ===" where N is its 1-based page number. Decide whether this window ends at a logically complete point — a natural topic boundary where the next chunk could begin on a fresh page.
+
+Signs of a complete boundary at a page edge:
+- The window's final page concludes a section, topic, or argument
+- A new, independent subject clearly begins partway through the window (the chunk should end on the page before it starts)
+- A section break or heading marks a clear shift between pages
+
+Signs the boundary is NOT complete:
+- The final page ends mid-topic and the subject plainly continues onto the next (not-yet-included) page
+- A table, list, figure, or multi-page argument is left unfinished at the window's last page
+
+## Candidate page window
+{window_text}
+
+Respond with JSON only. Do NOT echo these instructions or include any text outside the JSON object.
+- "complete": true if the window ends at a logically complete topic boundary that coincides with a page edge, false otherwise
+- "split_after_page": if complete is true, the 1-based page number N (taken from the "=== Page N ===" markers) that should be the LAST page of this chunk; the chunk will contain pages up to and including N. If the whole window forms one complete chunk, use the final page's number, or null to mean "end at the window's last page". If complete is false, set to null.
