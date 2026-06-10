@@ -18,9 +18,13 @@ run input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model
     echo "Output: $output_dir"
     uv run chunker run {{ input }} --model {{ model }} --output-dir "$output_dir"
 
+# Process a plain text or markdown document (text mode -- no vision). `model` need not be vision-capable.
+run-txt input="./output/the_pragmatic_programmer/the_pragmatic_programmer.txt" model="gemma4:latest" output="./output/the_pragmatic_programmer/":
+    just run {{ input }} {{ model }} {{ output }}
+
 # Process a PDF directly -- no lossy pdftotext pre-pass. `model` must be vision-capable.
 run-pdf input="output/ai_report_2026/ai_index_report_2026.pdf" model="gemma4:latest" output="output/ai_report_2026/":
     just run {{ input }} {{ model }} {{ output }}
 
-run-fixture model="gemma4:latest":
-    just run-pdf output/ai_report_2026/ai_index_report_2026.pdf {{ model }} output/ai_report_2026/
+run-fixture model="gemma4:31b":
+    just run-pdf output/ai_report_2026_pdf/ai_index_report_2026.pdf {{ model }} output/ai_report_2026_pdf/
